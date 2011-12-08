@@ -78,14 +78,25 @@ void GLWidget::initializeGL()
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
 
     // Set up GL_LIGHT0 with a position and lighting properties
-    GLfloat ambientLight[] = {0.2f, 0.1f, 0.3f, 1.0f};
-    GLfloat diffuseLight[] = { 1.0f, 1.0f, 1.0, 1.0f };
-    GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position[] = { 0.0f, 2.0f, 2.0f, 1.0f };
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
-    glLightfv(GL_LIGHT0, GL_POSITION, position);
+    GLfloat ambientLight0[] = {0.2f, 0.1f, 0.3f, 1.0f};
+    GLfloat diffuseLight0[] = { 1.0f, 1.0f, 1.0, 1.0f };
+    GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat position0[] = { -3.0f, 2.0f, 2.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
+    glLightfv(GL_LIGHT0, GL_POSITION, position0);
+
+    // Set up GL_LIGHT1 with a position and lighting properties
+    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
+    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
+    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
+    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
+    glLightfv(GL_LIGHT1, GL_POSITION, position1);
+
 
 
     // Set up material properties
