@@ -67,7 +67,37 @@ void GLWidget::initializeGL()
 
     glDisable(GL_DITHER);
 
-    glDisable(GL_LIGHTING);
+   // glDisable(GL_LIGHTING);
+    // Enable color materials with ambient and diffuse lighting terms
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+
+    // Set up global (ambient) lighting
+    GLfloat global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
+
+    // Set up GL_LIGHT0 with a position and lighting properties
+    GLfloat ambientLight[] = {0.2f, 0.1f, 0.3f, 1.0f};
+    GLfloat diffuseLight[] = { 1.0f, 1.0f, 1.0, 1.0f };
+    GLfloat specularLight[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat position[] = { 0.0f, 2.0f, 2.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, position);
+
+
+    // Set up material properties
+    GLfloat shiny = 25;
+    GLfloat ambientMat[] = {0.0f, 0.0f, 0.0f, 0.0f};
+    GLfloat diffuseMat[] = { 0.0f, 0.0f, 0.0, 0.0f };
+    GLfloat specularMat[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientMat);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseMat);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularMat);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &shiny);
+
     glShadeModel(GL_FLAT);
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -131,6 +161,8 @@ void GLWidget::createShaderPrograms()
     const QGLContext *ctx = context();
     m_shaderPrograms["reflect"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/reflect.vert",
                                                                    "../final/shaders/reflect.frag");
+    m_shaderPrograms["cartoon"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/cartoon.vert",
+                                                                   "../final/shaders/cartoon.frag");
     m_shaderPrograms["refract"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/refract.vert",
                                                                    "../final/shaders/refract.frag");
     m_shaderPrograms["brightpass"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/brightpass.frag");
