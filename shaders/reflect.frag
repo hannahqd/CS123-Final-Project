@@ -29,7 +29,7 @@ void main (void)
    //calculate Ambient Term:
    vec4 amb0 = gl_FrontLightProduct[0].ambient;
    vec4 amb1 = gl_FrontLightProduct[1].ambient;
-   vec4 amb = .5 * (amb0 + amb1);
+   vec4 amb = 0.5 * (amb0 + amb1);
 
    //calculate Diffuse Term:
    vec4 diff0 = gl_FrontLightProduct[0].diffuse * max(dot(N, l0), 0.0);
