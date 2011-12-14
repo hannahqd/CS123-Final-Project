@@ -80,7 +80,7 @@ void GLWidget::initializeGL()
 
     // Set up GL_LIGHT0 with a position and lighting properties
     GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
-    GLfloat diffuseLight0[] = { 5.0f, 2.5f, 1.0, 1.0f };
+    GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
     //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
     GLfloat position0[] = { 10.0f, 0.0f, 100.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
@@ -156,12 +156,12 @@ void GLWidget::initializeResources()
 void GLWidget::loadCubeMap()
 {
     QList<QFile *> fileList;
-    fileList.append(new QFile("../final/textures/astra/posx.jpg"));
-    fileList.append(new QFile("../final/textures/astra/negx.jpg"));
-    fileList.append(new QFile("../final/textures/astra/posy.jpg"));
-    fileList.append(new QFile("../final/textures/astra/negy.jpg"));
-    fileList.append(new QFile("../final/textures/astra/posz.jpg"));
-    fileList.append(new QFile("../final/textures/astra/negz.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/posx.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/negx.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/posy.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/negy.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/posz.jpg"));
+    fileList.append(new QFile("../final/textures/sunset/negz.jpg"));
     m_cubeMap = ResourceLoader::loadCubeMap(fileList);
 }
 
@@ -203,6 +203,12 @@ void GLWidget::createFramebufferObjects(int width, int height)
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
     //
     m_framebufferObjects["fbo_2"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
+                                                             GL_TEXTURE_2D, GL_RGB16F_ARB);
+
+    m_framebufferObjects["fbo_3"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
+                                                             GL_TEXTURE_2D, GL_RGB16F_ARB);
+
+    m_framebufferObjects["fbo_4"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 }
 
