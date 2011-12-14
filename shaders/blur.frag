@@ -13,12 +13,4 @@ void main(void) {
     }
 
     gl_FragColor = blurColor;
-
-
-
-    //vec4 sample = texture2D(tex, gl_TexCoord[0].st);
-    //float luminance = max(0.0, dot(avgVector, sample.rgb));
-    //sample.rgb *= sign(luminance - 1.0);
-    //gl_FragColor = sample;
-    // Fill this in!
 }

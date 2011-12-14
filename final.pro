@@ -39,6 +39,8 @@ OTHER_FILES += \
     shaders/reflect.vert \
     shaders/reflect.frag \
     shaders/brightpass.frag \
-    shaders/blur.frag
+    shaders/blur.frag \
+    shaders/basic.frag \
+    shaders/basic.vert
 
 RESOURCES +=

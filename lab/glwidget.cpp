@@ -75,27 +75,28 @@ void GLWidget::initializeGL()
     // Set up global (ambient) lighting
     GLfloat global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
 
     // Set up GL_LIGHT0 with a position and lighting properties
-    GLfloat ambientLight0[] = {0.2f, 0.1f, 0.3f, 1.0f};
-    GLfloat diffuseLight0[] = { 1.0f, 1.0f, 1.0, 1.0f };
-    GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position0[] = { -3.0f, 2.0f, 2.0f, 1.0f };
+    GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
+    GLfloat diffuseLight0[] = { 5.0f, 2.5f, 1.0, 1.0f };
+    //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat position0[] = { 10.0f, 0.0f, 100.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
+    //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
 
     // Set up GL_LIGHT1 with a position and lighting properties
-    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
-    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
-    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
-    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
-    glLightfv(GL_LIGHT1, GL_POSITION, position1);
+//    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
+//    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
+//    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+//    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
+//    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
+//    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
+//    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
+//    glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
 
 
@@ -131,7 +132,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("../final/models/teapot.obj");
+    m_dragon = ResourceLoader::loadObjModel("../final/models/xyzrgb_dragon.obj");
     cout << "Loaded dragon..." << endl;
 
     m_skybox = ResourceLoader::loadSkybox();
@@ -176,6 +177,9 @@ void GLWidget::createShaderPrograms()
                                                                    "../final/shaders/cartoon.frag");
     m_shaderPrograms["refract"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/refract.vert",
                                                                    "../final/shaders/refract.frag");
+    m_shaderPrograms["basic"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/basic.vert",
+                                                                   "../final/shaders/basic.frag");
+
     m_shaderPrograms["brightpass"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/brightpass.frag");
     m_shaderPrograms["blur"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/blur.frag");
 }
@@ -197,7 +201,7 @@ void GLWidget::createFramebufferObjects(int width, int height)
     // These do not require depth attachments
     m_framebufferObjects["fbo_1"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
-    // TODO: Create another framebuffer here.  Look up two lines to see how to do this... =.=
+    //
     m_framebufferObjects["fbo_2"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 }
@@ -332,13 +336,13 @@ void GLWidget::renderScene() {
     m_shaderPrograms["refract"]->release();
 
     // Render the dragon with the reflection shader bound
-    m_shaderPrograms["reflect"]->bind();
-    m_shaderPrograms["reflect"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    m_shaderPrograms["basic"]->bind();
+   // m_shaderPrograms["reflect"]->setUniformValue("CubeMap", GL_TEXTURE0);
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
     glCallList(m_dragon.idx);
     glPopMatrix();
-    m_shaderPrograms["reflect"]->release();
+    m_shaderPrograms["basic"]->release();
 
     // Disable culling, depth testing and cube maps
     glDisable(GL_CULL_FACE);
