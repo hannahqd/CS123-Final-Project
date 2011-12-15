@@ -36,5 +36,7 @@ OTHER_FILES += shaders/refract.vert \
     shaders/reflect.frag \
     shaders/brightpass.frag \
     shaders/blur.frag \
-    shaders/tonemap.frag
+    shaders/tonemap.frag \
+    shaders/basic.frag \
+    shaders/basic.vert
 RESOURCES += 
