@@ -82,7 +82,7 @@ void GLWidget::initializeGL()
     GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
     GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
     //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position0[] = { 10.0f, 0.0f, 100.0f, 0.0f};
+    GLfloat position0[] = { 10.0f, 0.0f, 50.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
     //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
@@ -132,7 +132,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("../final/models/xyzrgb_dragon.obj");
+    m_dragon = ResourceLoader::loadObjModel("../final/models/teapot.obj");
     cout << "Loaded dragon..." << endl;
 
     m_skybox = ResourceLoader::loadSkybox();
@@ -205,7 +205,7 @@ void GLWidget::createFramebufferObjects(int width, int height)
     m_framebufferObjects["fbo_2"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 
-    m_framebufferObjects["fbo_3"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
+    m_framebufferObjects["fbo_3"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::Depth,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 
     m_framebufferObjects["fbo_4"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
@@ -341,20 +341,82 @@ void GLWidget::renderScene() {
     glPopMatrix();
     m_shaderPrograms["refract"]->release();
 
+   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
     // Render the dragon with the reflection shader bound
-    m_shaderPrograms["basic"]->bind();
-   // m_shaderPrograms["reflect"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    m_shaderPrograms["reflect"]->bind();
+    m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
+//    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.77f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.75f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.77f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.8f);
+//    m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
     glCallList(m_dragon.idx);
     glPopMatrix();
-    m_shaderPrograms["basic"]->release();
+    m_shaderPrograms["reflect"]->release();
 
     // Disable culling, depth testing and cube maps
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_CUBE_MAP,0);
     glDisable(GL_TEXTURE_CUBE_MAP);
+}
+
+void GLWidget::renderShadowScene() {
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+  //  m_framebufferObjects["fbo_3"]->bind();
+    m_camera.center = Vector3(0.f, 0.f, -10.f);
+//    m_camera.up = Vector3(0.f, 1.f, 0.f);
+//    m_camera.zoom = 3.5f;
+//    m_camera.theta = M_PI * 1.5f, m_camera.phi = 0.2f;
+//    m_camera.fovy = 60.f;
+
+    //m_shaderPrograms["brightpass"]->bind();
+    //glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+    //renderTexturedQuad(width, height, true);
+    //m_shaderPrograms["brightpass"]->release();
+    //glBindTexture(GL_TEXTURE_2D, 0);
+ // m_framebufferObjects["fbo_3"]->release();
+
+
+
+    // Enable cube maps and draw the skybox
+//    glEnable(GL_TEXTURE_CUBE_MAP);
+//    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMap);
+//    glCallList(m_skybox);
+
+    // Enable culling (back) faces for rendering the dragon
+    glEnable(GL_CULL_FACE);
+
+//    // Render the dragon with the refraction shader bound
+//    glActiveTexture(GL_TEXTURE0);
+//    m_shaderPrograms["refract"]->bind();
+//    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    glPushMatrix();
+    glTranslatef(-1.25f, 0.f, 0.f);
+    glCallList(m_dragon.idx);
+    glPopMatrix();
+//    m_shaderPrograms["refract"]->release();
+
+//    // Render the dragon with the reflection shader bound
+//    m_shaderPrograms["reflect"]->bind();
+//    m_shaderPrograms["reflect"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    glPushMatrix();
+    glTranslatef(1.25f,0.f,0.f);
+    glCallList(m_dragon.idx);
+    glPopMatrix();
+//    m_shaderPrograms["reflect"]->release();
+
+//    // Disable culling, depth testing and cube maps
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+//    glBindTexture(GL_TEXTURE_CUBE_MAP,0);
+//    glDisable(GL_TEXTURE_CUBE_MAP);
 }
 
 /**
@@ -366,7 +428,7 @@ void GLWidget::renderScene() {
 **/
 void GLWidget::renderBlur(int width, int height)
 {
-    int radius = 2;
+    int radius = 3;
     int dim = radius * 2 + 1;
     GLfloat kernel[dim * dim];
     GLfloat offsets[dim * dim * 2];

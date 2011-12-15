@@ -46,6 +46,7 @@ protected:
     void renderTexturedQuad(int width, int height, bool flip);
     void renderBlur(int width, int height);
     void renderScene();
+    void renderShadowScene();
     void paintText();
 
 private:
