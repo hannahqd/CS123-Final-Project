@@ -132,7 +132,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("../final/models/teapot.obj");
+    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/piano.obj");//("../final/models/elephal.obj");
     cout << "Loaded dragon..." << endl;
 
     m_skybox = ResourceLoader::loadSkybox();
@@ -156,12 +156,13 @@ void GLWidget::initializeResources()
 void GLWidget::loadCubeMap()
 {
     QList<QFile *> fileList;
-    fileList.append(new QFile("../final/textures/sunset/posx.jpg"));
-    fileList.append(new QFile("../final/textures/sunset/negx.jpg"));
-    fileList.append(new QFile("../final/textures/sunset/posy.jpg"));
-    fileList.append(new QFile("../final/textures/sunset/negy.jpg"));
-    fileList.append(new QFile("../final/textures/sunset/posz.jpg"));
-    fileList.append(new QFile("../final/textures/sunset/negz.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls/posx.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls/negx.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls/posy.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls/negy.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls-cross.jpg"));//("../final/textures/stpauls/posz.jpg"));
+//    fileList.append(new QFile("../final/textures/stpauls/negz.jpg"));
+    fileList.append(new QFile("../final/textures/grace_cross.hdr"));
     m_cubeMap = ResourceLoader::loadCubeMap(fileList);
 }
 
@@ -284,7 +285,7 @@ void GLWidget::paintGL()
     m_framebufferObjects["fbo_2"]->bind();
     m_shaderPrograms["brightpass"]->bind();
     glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-    renderTexturedQuad(width, height, true);
+    renderTexturedQuad(width, height, false);
     m_shaderPrograms["brightpass"]->release();
     glBindTexture(GL_TEXTURE_2D, 0);
     m_framebufferObjects["fbo_2"]->release();
@@ -585,4 +586,5 @@ void GLWidget::paintText()
     // QGLWidget's renderText takes xy coordinates, a string, and a font
     renderText(10, 20, "FPS: " + QString::number((int) (m_prevFps)), m_font);
     renderText(10, 35, "S: Save screenshot", m_font);
+    renderText(10, 50, "TODO: key cmds, 0pen, Exposure...", m_font);
 }

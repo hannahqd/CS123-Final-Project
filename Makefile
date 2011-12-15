@@ -49,7 +49,8 @@ SOURCES       = lab/glwidget.cpp \
 		support/resourceloader.cpp \
 		support/mainwindow.cpp \
 		support/main.cpp \
-		support/camera.cpp moc_glwidget.cpp \
+		support/camera.cpp \
+		rgbe/rgbe.cpp moc_glwidget.cpp \
 		moc_mainwindow.cpp
 OBJECTS       = glwidget.o \
 		targa.o \
@@ -58,6 +59,7 @@ OBJECTS       = glwidget.o \
 		mainwindow.o \
 		main.o \
 		camera.o \
+		rgbe.o \
 		moc_glwidget.o \
 		moc_mainwindow.o
 DIST          = /usr/share/qt4/mkspecs/common/g++.conf \
@@ -164,7 +166,7 @@ qmake:  FORCE
 
 dist: 
 	@$(CHK_DIR_EXISTS) .tmp/final1.0.0 || $(MKDIR) .tmp/final1.0.0 
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/final1.0.0/ && $(COPY_FILE) --parents lab/glwidget.h lib/targa.h lib/glm.h math/vector.h support/resourceloader.h support/mainwindow.h support/camera.h lib/targa.h .tmp/final1.0.0/ && $(COPY_FILE) --parents lab/glwidget.cpp lib/targa.cpp lib/glm.cpp support/resourceloader.cpp support/mainwindow.cpp support/main.cpp support/camera.cpp .tmp/final1.0.0/ && $(COPY_FILE) --parents support/mainwindow.ui support/mainwindow.ui .tmp/final1.0.0/ && (cd `dirname .tmp/final1.0.0` && $(TAR) final1.0.0.tar final1.0.0 && $(COMPRESS) final1.0.0.tar) && $(MOVE) `dirname .tmp/final1.0.0`/final1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/final1.0.0
+	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/final1.0.0/ && $(COPY_FILE) --parents lab/glwidget.h lib/targa.h lib/glm.h math/vector.h support/resourceloader.h support/mainwindow.h support/camera.h lib/targa.h rgbe/rgbe.h .tmp/final1.0.0/ && $(COPY_FILE) --parents lab/glwidget.cpp lib/targa.cpp lib/glm.cpp support/resourceloader.cpp support/mainwindow.cpp support/main.cpp support/camera.cpp rgbe/rgbe.cpp .tmp/final1.0.0/ && $(COPY_FILE) --parents support/mainwindow.ui support/mainwindow.ui .tmp/final1.0.0/ && (cd `dirname .tmp/final1.0.0` && $(TAR) final1.0.0.tar final1.0.0 && $(COMPRESS) final1.0.0.tar) && $(MOVE) `dirname .tmp/final1.0.0`/final1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/final1.0.0
 
 
 clean:compiler_clean 
@@ -249,16 +251,12 @@ glm.o: lib/glm.cpp lib/glm.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o glm.o lib/glm.cpp
 
 resourceloader.o: support/resourceloader.cpp support/resourceloader.h \
-		lib/glm.h
+		lib/glm.h \
+		rgbe/rgbe.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o resourceloader.o support/resourceloader.cpp
 
 mainwindow.o: support/mainwindow.cpp support/mainwindow.h \
-		ui_mainwindow.h \
-		lab/glwidget.h \
-		support/camera.h \
-		math/vector.h \
-		support/resourceloader.h \
-		lib/glm.h
+		ui_mainwindow.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o mainwindow.o support/mainwindow.cpp
 
 main.o: support/main.cpp support/mainwindow.h
@@ -267,6 +265,9 @@ main.o: support/main.cpp support/mainwindow.h
 camera.o: support/camera.cpp support/camera.h \
 		math/vector.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o camera.o support/camera.cpp
+
+rgbe.o: rgbe/rgbe.cpp rgbe/rgbe.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o rgbe.o rgbe/rgbe.cpp
 
 moc_glwidget.o: moc_glwidget.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_glwidget.o moc_glwidget.cpp
