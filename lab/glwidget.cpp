@@ -289,8 +289,6 @@ void GLWidget::paintGL()
     glBindTexture(GL_TEXTURE_2D, 0);
     m_framebufferObjects["fbo_2"]->release();
 
-    // TODO: Uncomment this section in step 2 of the lab
-
     float scales[] = {4.f,8.f,16.f,32.f};
     for (int i = 0; i < 4; ++i)
     {
@@ -365,30 +363,21 @@ void GLWidget::renderScene() {
 
 void GLWidget::renderShadowScene() {
     // Enable depth testing
+
+ //   m_framebufferObjects["fbo_3"]->bind();
+    glPushMatrix();
+    glTranslatef(0.f, 0.f, 10.f);
+
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT);
-
-  //  m_framebufferObjects["fbo_3"]->bind();
-    m_camera.center = Vector3(0.f, 0.f, -10.f);
-//    m_camera.up = Vector3(0.f, 1.f, 0.f);
-//    m_camera.zoom = 3.5f;
-//    m_camera.theta = M_PI * 1.5f, m_camera.phi = 0.2f;
-//    m_camera.fovy = 60.f;
 
     //m_shaderPrograms["brightpass"]->bind();
     //glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
     //renderTexturedQuad(width, height, true);
     //m_shaderPrograms["brightpass"]->release();
     //glBindTexture(GL_TEXTURE_2D, 0);
- // m_framebufferObjects["fbo_3"]->release();
 
-
-
-    // Enable cube maps and draw the skybox
-//    glEnable(GL_TEXTURE_CUBE_MAP);
-//    glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMap);
-//    glCallList(m_skybox);
 
     // Enable culling (back) faces for rendering the dragon
     glEnable(GL_CULL_FACE);
@@ -415,8 +404,9 @@ void GLWidget::renderShadowScene() {
 //    // Disable culling, depth testing and cube maps
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
-//    glBindTexture(GL_TEXTURE_CUBE_MAP,0);
-//    glDisable(GL_TEXTURE_CUBE_MAP);
+//    m_framebufferObjects["fbo_3"]->release();
+
+    glPopMatrix();
 }
 
 /**
