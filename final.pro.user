@@ -1,0 +1,247 @@
+<!DOCTYPE QtCreatorProject>
+<qtcreator>
+ <data>
+  <variable>RunConfiguration0-BaseEnvironmentBase</variable>
+  <value type="int">2</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-CommandLineArguments</variable>
+  <valuelist type="QVariantList"/>
+ </data>
+ <data>
+  <variable>RunConfiguration0-ProFile</variable>
+  <value type="QString">final.pro</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-RunConfiguration.name</variable>
+  <value type="QString">final</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UseDyldImageSuffix</variable>
+  <value type="bool">false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UseTerminal</variable>
+  <value type="bool">false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserEnvironmentChanges</variable>
+  <valuelist type="QVariantList"/>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserSetName</variable>
+  <value type="bool">false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserSetWorkingDirectory</variable>
+  <value type="bool">false</value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-UserWorkingDirectory</variable>
+  <value type="QString"></value>
+ </data>
+ <data>
+  <variable>RunConfiguration0-type</variable>
+  <value type="QString">Qt4ProjectManager.Qt4RunConfiguration</value>
+ </data>
+ <data>
+  <variable>activeRunConfiguration</variable>
+  <value type="int">0</value>
+ </data>
+ <data>
+  <variable>activebuildconfiguration</variable>
+  <value type="QString">Debug</value>
+ </data>
+ <data>
+  <variable>buildConfiguration-Debug</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
+   <value key="QtVersionId" type="int">2</value>
+   <value key="ToolChain" type="int">0</value>
+   <value key="addQDumper" type=""></value>
+   <value key="buildConfiguration" type="int">2</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-buildstep0</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
+   <valuelist key="abstractProcess.Environment" type="QVariantList">
+    <value type="QString">CLASSPATH=:/course/cs032/lib:/course/cs032/lib/jogl.jar:../src/</value>
+    <value type="QString">COLORTERM=gnome-terminal</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-3lMO0HpBG4,guid=3ca939a35e9cc021f050c19e000e78f2</value>
+    <value type="QString">DESKTOP_SESSION=default</value>
+    <value type="QString">DISPLAY=:20.0</value>
+    <value type="QString">EDITOR=nano</value>
+    <value type="QString">GDMSESSION=default</value>
+    <value type="QString">GDM_XSERVER_LOCATION=flexi</value>
+    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-iv6ZBP</value>
+    <value type="QString">GNOME_KEYRING_PID=5228</value>
+    <value type="QString">GTK_IM_MODULE=xim</value>
+    <value type="QString">HOME=/home/gen</value>
+    <value type="QString">ILOG_LICENSE_FILE=/com/ilog/ilm/linux/access.ilm</value>
+    <value type="QString">JAVA_HOME=/usr</value>
+    <value type="QString">KRB5CCNAME=/tmp/krb5cc_35790</value>
+    <value type="QString">LANG=C</value>
+    <value type="QString">LD_LIBRARY_PATH=/usr/lib/qtcreator::/course/cs032/lib/OpenCV/release/lib</value>
+    <value type="QString">LESS=-X</value>
+    <value type="QString">LOGNAME=gen</value>
+    <value type="QString">MANPATH=/local/share/man:/usr/local/man:/usr/share/man:/usr/X11R6/man:/usr/local/share/man</value>
+    <value type="QString">OLDPWD=/gpfs/main/home/gen/courses/Courses_Fall2011/cs123</value>
+    <value type="QString">ORBIT_SOCKETDIR=/tmp/orbit-gen</value>
+    <value type="QString">PAGER=less</value>
+    <value type="QString">PATH=/usr/bin:/local/bin/:/local/bin:/cfarm/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/games:/contrib/bin:/course/cs123/bin:/course/cs123/lib/qt/qt/bin:/course/cs143/bin:/course/cs129/bin:/contrib/projects/netbeans/netbeans6.5/bin</value>
+    <value type="QString">PRINTER=bw4</value>
+    <value type="QString">PWD=/gpfs/main/home/gen/courses/Courses_Fall2011/cs123/final</value>
+    <value type="QString">PYTHONPATH=/course/cs129/include/python</value>
+    <value type="QString">QTDIR=/usr/share/qt4</value>
+    <value type="QString">QT_IM_MODULE=xim</value>
+    <value type="QString">SESSION_MANAGER=local/kui:@/tmp/.ICE-unix/5491,unix/kui:/tmp/.ICE-unix/5491</value>
+    <value type="QString">SHELL=/bin/bash</value>
+    <value type="QString">SHLVL=1</value>
+    <value type="QString">SSH_AGENT_PID=5492</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-WbvgAu5491/agent.5491</value>
+    <value type="QString">TERM=xterm</value>
+    <value type="QString">USER=gen</value>
+    <value type="QString">USERNAME=gen</value>
+    <value type="QString">VISUAL=gedit</value>
+    <value type="QString">WINDOWID=41943044</value>
+    <value type="QString">WINDOWPATH=9</value>
+    <value type="QString">XAUTHORITY=/tmp/.gdm538J6V</value>
+    <value type="QString">XDG_DATA_DIRS=/usr/local/share/:/usr/share/:/usr/share/gdm/</value>
+    <value type="QString">XDG_SESSION_COOKIE=484b4deaa962bd25e18c5587000009ab-1323544468.614389-1108780120</value>
+    <value type="QString">XMODIFIERS=@im=SCIM</value>
+    <value type="QString">XPSERVERLIST=:64 </value>
+    <value type="QString">_=/usr/bin/qtcreator</value>
+   </valuelist>
+   <valuelist key="abstractProcess.arguments" type="QVariantList">
+    <value type="QString">/gpfs/main/home/gen/courses/Courses_Fall2011/cs123/final/final.pro</value>
+    <value type="QString">-spec</value>
+    <value type="QString">linux-g++</value>
+    <value type="QString">-r</value>
+    <value type="QString">CONFIG+=debug</value>
+   </valuelist>
+   <value key="abstractProcess.command" type="QString">/usr/bin/qmake-qt4</value>
+   <value key="abstractProcess.enabled" type="bool">false</value>
+   <value key="abstractProcess.workingDirectory" type="QString">/gpfs/main/home/gen/courses/Courses_Fall2011/cs123/final</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-buildstep1</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
+   <valuelist key="abstractProcess.Environment" type="QVariantList">
+    <value type="QString">CLASSPATH=:/course/cs032/lib:/course/cs032/lib/jogl.jar:../src/</value>
+    <value type="QString">COLORTERM=gnome-terminal</value>
+    <value type="QString">DBUS_SESSION_BUS_ADDRESS=unix:abstract=/tmp/dbus-3lMO0HpBG4,guid=3ca939a35e9cc021f050c19e000e78f2</value>
+    <value type="QString">DESKTOP_SESSION=default</value>
+    <value type="QString">DISPLAY=:20.0</value>
+    <value type="QString">EDITOR=nano</value>
+    <value type="QString">GDMSESSION=default</value>
+    <value type="QString">GDM_XSERVER_LOCATION=flexi</value>
+    <value type="QString">GNOME_KEYRING_CONTROL=/tmp/keyring-iv6ZBP</value>
+    <value type="QString">GNOME_KEYRING_PID=5228</value>
+    <value type="QString">GTK_IM_MODULE=xim</value>
+    <value type="QString">HOME=/home/gen</value>
+    <value type="QString">ILOG_LICENSE_FILE=/com/ilog/ilm/linux/access.ilm</value>
+    <value type="QString">JAVA_HOME=/usr</value>
+    <value type="QString">KRB5CCNAME=/tmp/krb5cc_35790</value>
+    <value type="QString">LANG=C</value>
+    <value type="QString">LD_LIBRARY_PATH=/usr/lib/qtcreator::/course/cs032/lib/OpenCV/release/lib</value>
+    <value type="QString">LESS=-X</value>
+    <value type="QString">LOGNAME=gen</value>
+    <value type="QString">MANPATH=/local/share/man:/usr/local/man:/usr/share/man:/usr/X11R6/man:/usr/local/share/man</value>
+    <value type="QString">OLDPWD=/gpfs/main/home/gen/courses/Courses_Fall2011/cs123</value>
+    <value type="QString">ORBIT_SOCKETDIR=/tmp/orbit-gen</value>
+    <value type="QString">PAGER=less</value>
+    <value type="QString">PATH=/usr/bin:/local/bin/:/local/bin:/cfarm/bin:/usr/local/bin:/bin:/usr/bin:/usr/X11R6/bin:/usr/games:/contrib/bin:/course/cs123/bin:/course/cs123/lib/qt/qt/bin:/course/cs143/bin:/course/cs129/bin:/contrib/projects/netbeans/netbeans6.5/bin</value>
+    <value type="QString">PRINTER=bw4</value>
+    <value type="QString">PWD=/gpfs/main/home/gen/courses/Courses_Fall2011/cs123/final</value>
+    <value type="QString">PYTHONPATH=/course/cs129/include/python</value>
+    <value type="QString">QTDIR=/usr/share/qt4</value>
+    <value type="QString">QT_IM_MODULE=xim</value>
+    <value type="QString">SESSION_MANAGER=local/kui:@/tmp/.ICE-unix/5491,unix/kui:/tmp/.ICE-unix/5491</value>
+    <value type="QString">SHELL=/bin/bash</value>
+    <value type="QString">SHLVL=1</value>
+    <value type="QString">SSH_AGENT_PID=5492</value>
+    <value type="QString">SSH_AUTH_SOCK=/tmp/ssh-WbvgAu5491/agent.5491</value>
+    <value type="QString">TERM=xterm</value>
+    <value type="QString">USER=gen</value>
+    <value type="QString">USERNAME=gen</value>
+    <value type="QString">VISUAL=gedit</value>
+    <value type="QString">WINDOWID=41943044</value>
+    <value type="QString">WINDOWPATH=9</value>
+    <value type="QString">XAUTHORITY=/tmp/.gdm538J6V</value>
+    <value type="QString">XDG_DATA_DIRS=/usr/local/share/:/usr/share/:/usr/share/gdm/</value>
+    <value type="QString">XDG_SESSION_COOKIE=484b4deaa962bd25e18c5587000009ab-1323544468.614389-1108780120</value>
+    <value type="QString">XMODIFIERS=@im=SCIM</value>
+    <value type="QString">XPSERVERLIST=:64 </value>
+    <value type="QString">_=/usr/bin/qtcreator</value>
+   </valuelist>
+   <value key="abstractProcess.IgnoreReturnValue" type="bool">false</value>
+   <valuelist key="abstractProcess.arguments" type="QVariantList">
+    <value type="QString">-w</value>
+   </valuelist>
+   <value key="abstractProcess.command" type="QString">/usr/bin/make</value>
+   <value key="abstractProcess.enabled" type="bool">true</value>
+   <value key="abstractProcess.workingDirectory" type="QString">/gpfs/main/home/gen/courses/Courses_Fall2011/cs123/final</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfiguration-Debug-cleanstep0</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString">Debug</value>
+   <value key="cleanConfig" type="bool">true</value>
+   <valuelist key="makeargs" type="QVariantList">
+    <value type="QString">clean</value>
+   </valuelist>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildconfigurations</variable>
+  <valuelist type="QVariantList">
+   <value type="QString">Debug</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>buildstep0</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString"></value>
+   <value key="mkspec" type="QString"></value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildstep1</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString"></value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>buildsteps</variable>
+  <valuelist type="QVariantList">
+   <value type="QString">trolltech.qt4projectmanager.qmake</value>
+   <value type="QString">trolltech.qt4projectmanager.make</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>cleanstep0</variable>
+  <valuemap type="QVariantMap">
+   <value key="ProjectExplorer.BuildConfiguration.DisplayName" type="QString"></value>
+   <value key="clean" type="bool">true</value>
+  </valuemap>
+ </data>
+ <data>
+  <variable>cleansteps</variable>
+  <valuelist type="QVariantList">
+   <value type="QString">trolltech.qt4projectmanager.make</value>
+  </valuelist>
+ </data>
+ <data>
+  <variable>defaultFileEncoding</variable>
+  <value type="QByteArray">System</value>
+ </data>
+ <data>
+  <variable>project</variable>
+  <valuemap type="QVariantMap"/>
+ </data>
+</qtcreator>
