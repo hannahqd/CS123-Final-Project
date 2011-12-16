@@ -36,6 +36,9 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     m_camera.theta = M_PI * 1.5f, m_camera.phi = 0.2f;
     m_camera.fovy = 60.f;
 
+    m_exp = 1.0;
+    m_isHDR = true;
+
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
@@ -132,15 +135,15 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/piano.obj");//("../final/models/elephal.obj");
+    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
     cout << "Loaded dragon..." << endl;
 
-    m_skybox = ResourceLoader::loadSkybox();
-    cout << "Loaded skybox..." << endl;
-
-    loadCubeMap();
+    char* cube_map = "../final/textures/stpeters_cross.hdr";
+    loadCubeMap(cube_map);
     cout << "Loaded cube map..." << endl;
 
+    m_skybox = ResourceLoader::loadSkybox(m_cubeMap);
+    cout << "Loaded skybox..." << endl;
     createShaderPrograms();
     cout << "Loaded shader programs..." << endl;
 
@@ -153,17 +156,9 @@ void GLWidget::initializeResources()
 /**
   Load a cube map for the skybox
  **/
-void GLWidget::loadCubeMap()
+void GLWidget::loadCubeMap(char* filename)
 {
-    QList<QFile *> fileList;
-//    fileList.append(new QFile("../final/textures/stpauls/posx.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negx.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/posy.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negy.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls-cross.jpg"));//("../final/textures/stpauls/posz.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negz.jpg"));
-    fileList.append(new QFile("../final/textures/grace_cross.hdr"));
-    m_cubeMap = ResourceLoader::loadCubeMap(fileList);
+    m_cubeMap = ResourceLoader::loadCubeMap(filename);
 }
 
 /**
@@ -183,6 +178,7 @@ void GLWidget::createShaderPrograms()
 
     m_shaderPrograms["brightpass"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/brightpass.frag");
     m_shaderPrograms["blur"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/blur.frag");
+    m_shaderPrograms["tonemap"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/tonemap.frag");
 }
 
 /**
@@ -265,51 +261,60 @@ void GLWidget::paintGL()
     int width = this->width();
     int height = this->height();
 
-    // Render the scene to a framebuffer
-    m_framebufferObjects["fbo_0"]->bind();
-    applyPerspectiveCamera(width, height);
-    renderScene();
-    m_framebufferObjects["fbo_0"]->release();
-
-    // Copy the rendered scene into framebuffer 1
-    m_framebufferObjects["fbo_0"]->blitFramebuffer(m_framebufferObjects["fbo_1"],
-                                                   QRect(0, 0, width, height), m_framebufferObjects["fbo_0"],
-                                                   QRect(0, 0, width, height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-    // TODO: Add drawing code here
-    applyOrthogonalCamera(width, height);
-    glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-    renderTexturedQuad(width, height, true);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    m_framebufferObjects["fbo_2"]->bind();
-    m_shaderPrograms["brightpass"]->bind();
-    glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-    renderTexturedQuad(width, height, false);
-    m_shaderPrograms["brightpass"]->release();
-    glBindTexture(GL_TEXTURE_2D, 0);
-    m_framebufferObjects["fbo_2"]->release();
-
-    // TODO: Uncomment this section in step 2 of the lab
-
-    float scales[] = {4.f,8.f,16.f,32.f};
-    for (int i = 0; i < 4; ++i)
+    if(!m_isHDR)
     {
-        // Render the blurred brightpass filter result to fbo 1
-        renderBlur(width / scales[i], height / scales[i]);
+        applyPerspectiveCamera(width, height);
+        renderScene();
+    }
+    else
+    {
+        // Render the scene to a framebuffer
+        m_framebufferObjects["fbo_0"]->bind();
+        applyPerspectiveCamera(width, height);
+        renderScene();
+        m_framebufferObjects["fbo_0"]->release();
 
-        // Bind the image from fbo to a texture
+        // Copy the rendered scene into framebuffer 1
+        m_framebufferObjects["fbo_0"]->blitFramebuffer(m_framebufferObjects["fbo_1"],
+                                                       QRect(0, 0, width, height), m_framebufferObjects["fbo_0"],
+                                                       QRect(0, 0, width, height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        // TODO: Add drawing code here
+        applyOrthogonalCamera(width, height);
         glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        // Enable alpha blending and render the texture to the screen
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
-        glTranslatef(0.f, (scales[i] - 1) * -height, 0.f);
-        renderTexturedQuad(width * scales[i], height * scales[i], false);
-        glDisable(GL_BLEND);
+        renderTexturedQuad(width, height, true);
         glBindTexture(GL_TEXTURE_2D, 0);
+
+        m_framebufferObjects["fbo_2"]->bind();
+        m_shaderPrograms["tonemap"]->bind();
+        m_shaderPrograms["tonemap"]->setUniformValue("exposure", m_exp);
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+        renderTexturedQuad(width, height, false);
+        m_shaderPrograms["tonemap"]->release();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_framebufferObjects["fbo_2"]->release();
+
+        // TODO: Uncomment this section in step 2 of the lab
+
+        float scales[] = {4.f,8.f,16.f,32.f};
+        for (int i = 0; i < 4; ++i)
+        {
+            // Render the blurred brightpass filter result to fbo 1
+            renderBlur(width / scales[i], height / scales[i]);
+
+            // Bind the image from fbo to a texture
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+            // Enable alpha blending and render the texture to the screen
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glTranslatef(0.f, (scales[i] - 1) * -height, 0.f);
+            renderTexturedQuad(width * scales[i], height * scales[i], false);
+            glDisable(GL_BLEND);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
     }
 
 
@@ -346,11 +351,11 @@ void GLWidget::renderScene() {
     // Render the dragon with the reflection shader bound
     m_shaderPrograms["reflect"]->bind();
     m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
-//    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.77f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.75f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.77f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.8f);
-//    m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
+    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.77f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.75f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.77f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.8f);
+    m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
     glCallList(m_dragon.idx);
@@ -571,10 +576,47 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
     switch(event->key())
     {
         case Qt::Key_S:
-        QImage qi = grabFrameBuffer(false);
-        QString filter;
-        QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), "", tr("PNG Image (*.png)"), &filter);
-        qi.save(QFileInfo(fileName).absoluteDir().absolutePath() + "/" + QFileInfo(fileName).baseName() + ".png", "PNG", 100);
+        {
+            QImage qi = grabFrameBuffer(false);
+            QString filter;
+            QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"), "", tr("PNG Image (*.png)"), &filter);
+            qi.save(QFileInfo(fileName).absoluteDir().absolutePath() + "/" + QFileInfo(fileName).baseName() + ".png", "PNG", 100);
+        }
+        break;
+
+        case Qt::Key_O:
+        {
+            QString filter;
+            QString fn = QFileDialog::getOpenFileName(this, tr("Open Skybox Image"), "", tr("HDR Image (*.hdr)"), &filter);
+            QByteArray ba = fn.toLocal8Bit();
+            char * fileName = ba.data();
+            loadCubeMap(fileName);
+            cout << "Loaded new cube map..." << endl;
+        }
+        break;
+        case Qt::Key_E:
+        {
+            m_exp += 0.1;
+            paintGL();
+        }
+        break;
+        case Qt::Key_D:
+        {
+            m_exp -= 0.1;
+            paintGL();
+        }
+        break;
+        case Qt::Key_H:
+        {
+            m_isHDR = true;
+            paintGL();
+        }
+        break;
+        case Qt::Key_L:
+        {
+            m_isHDR = false;
+            paintGL();
+        }
         break;
     }
 }
@@ -596,5 +638,9 @@ void GLWidget::paintText()
     // QGLWidget's renderText takes xy coordinates, a string, and a font
     renderText(10, 20, "FPS: " + QString::number((int) (m_prevFps)), m_font);
     renderText(10, 35, "S: Save screenshot", m_font);
-    renderText(10, 50, "TODO: key cmds, 0pen, Exposure...", m_font);
+    renderText(10, 50, "O: Open new texture", m_font);
+    renderText(10, 65, "E: Increase exposure", m_font);
+    renderText(10, 80, "H: HDR scene", m_font);
+    renderText(10, 95, "L: LDR scene", m_font);
+
 }
