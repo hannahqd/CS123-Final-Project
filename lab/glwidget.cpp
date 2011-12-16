@@ -82,22 +82,22 @@ void GLWidget::initializeGL()
     GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
     GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
     //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position0[] = { 10.0f, 0.0f, 50.0f, 0.0f};
+    GLfloat position0[] = { 10.0f, 10.0f, 50.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
     //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
     glLightfv(GL_LIGHT0, GL_POSITION, position0);
 
-    // Set up GL_LIGHT1 with a position and lighting properties
-//    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
-//    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
-//    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-//    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
-//    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
-//    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
-//    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
-//    glLightfv(GL_LIGHT1, GL_POSITION, position1);
-
+ /*   // Set up GL_LIGHT1 with a position and lighting properties
+    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
+    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
+    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
+    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
+    glLightfv(GL_LIGHT1, GL_POSITION, position1);
+*/
 
 
     // Set up material properties
@@ -132,7 +132,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/piano.obj");//("../final/models/elephal.obj");
+    m_dragon = ResourceLoader::loadObjModel("../final/models/elephal.obj");//("/course/cs123/data/mesh/piano.obj");//
     cout << "Loaded dragon..." << endl;
 
     m_skybox = ResourceLoader::loadSkybox();
@@ -156,13 +156,7 @@ void GLWidget::initializeResources()
 void GLWidget::loadCubeMap()
 {
     QList<QFile *> fileList;
-//    fileList.append(new QFile("../final/textures/stpauls/posx.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negx.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/posy.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negy.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls-cross.jpg"));//("../final/textures/stpauls/posz.jpg"));
-//    fileList.append(new QFile("../final/textures/stpauls/negz.jpg"));
-    fileList.append(new QFile("../final/textures/grace_cross.hdr"));
+    fileList.append(new QFile("../final/textures/stpeters_cross.hdr"));
     m_cubeMap = ResourceLoader::loadCubeMap(fileList);
 }
 
@@ -174,8 +168,8 @@ void GLWidget::createShaderPrograms()
     const QGLContext *ctx = context();
     m_shaderPrograms["reflect"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/reflect.vert",
                                                                    "../final/shaders/reflect.frag");
-    m_shaderPrograms["cartoon"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/cartoon.vert",
-                                                                   "../final/shaders/cartoon.frag");
+    m_shaderPrograms["shadow"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/shadow.vert",
+                                                                   "../final/shaders/shadow.frag");
     m_shaderPrograms["refract"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/refract.vert",
                                                                    "../final/shaders/refract.frag");
     m_shaderPrograms["basic"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/basic.vert",
@@ -183,6 +177,7 @@ void GLWidget::createShaderPrograms()
 
     m_shaderPrograms["brightpass"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/brightpass.frag");
     m_shaderPrograms["blur"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/blur.frag");
+    m_shaderPrograms["bilat"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/bilat.frag");
 }
 
 /**
@@ -276,7 +271,6 @@ void GLWidget::paintGL()
                                                    QRect(0, 0, width, height), m_framebufferObjects["fbo_0"],
                                                    QRect(0, 0, width, height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-    // TODO: Add drawing code here
     applyOrthogonalCamera(width, height);
     glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
     renderTexturedQuad(width, height, true);
@@ -344,11 +338,11 @@ void GLWidget::renderScene() {
     // Render the dragon with the reflection shader bound
     m_shaderPrograms["reflect"]->bind();
     m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
-//    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.77f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.75f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.77f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.8f);
-//    m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
+    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
+    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
+    m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
     glCallList(m_dragon.idx);
@@ -365,25 +359,19 @@ void GLWidget::renderScene() {
 void GLWidget::renderShadowScene() {
     // Enable depth testing
 
- //   m_framebufferObjects["fbo_3"]->bind();
+  //  m_framebufferObjects["fbo_3"]->bind();
     glPushMatrix();
-    glTranslatef(0.f, 0.f, 10.f);
+    glTranslatef(0.f, -2.f, 10.f);
 
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    //m_shaderPrograms["brightpass"]->bind();
-    //glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-    //renderTexturedQuad(width, height, true);
-    //m_shaderPrograms["brightpass"]->release();
-    //glBindTexture(GL_TEXTURE_2D, 0);
-
-
     // Enable culling (back) faces for rendering the dragon
+    glCullFace(GL_FRONT);
     glEnable(GL_CULL_FACE);
 
-//    // Render the dragon with the refraction shader bound
+    // Render the first model
 //    glActiveTexture(GL_TEXTURE0);
 //    m_shaderPrograms["refract"]->bind();
 //    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
@@ -393,14 +381,11 @@ void GLWidget::renderShadowScene() {
     glPopMatrix();
 //    m_shaderPrograms["refract"]->release();
 
-//    // Render the dragon with the reflection shader bound
-//    m_shaderPrograms["reflect"]->bind();
-//    m_shaderPrograms["reflect"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    // Render the second model
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
     glCallList(m_dragon.idx);
     glPopMatrix();
-//    m_shaderPrograms["reflect"]->release();
 
 //    // Disable culling, depth testing and cube maps
     glDisable(GL_CULL_FACE);
@@ -408,6 +393,8 @@ void GLWidget::renderShadowScene() {
 //    m_framebufferObjects["fbo_3"]->release();
 
     glPopMatrix();
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,0);
 }
 
 /**

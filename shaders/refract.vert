@@ -24,6 +24,6 @@ void main()
 //    vertex = (gl_ModelViewMatrix * gl_Vertex).xyz;
 //    normal = normalize(gl_NormalMatrix * gl_Normal);
 //    eye = -vertex;
-
+//
 //    gl_Position = ftransform();
 //}

@@ -40,6 +40,7 @@ OTHER_FILES += shaders/refract.vert \
     shaders/basic.frag \
     shaders/basic.vert \
     shaders/shadow.frag \
-    shaders/shadow.vert
+    shaders/shadow.vert \
+    shaders/bilat.frag
 
 RESOURCES +=
