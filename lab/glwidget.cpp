@@ -70,7 +70,7 @@ void GLWidget::initializeGL()
 
     glDisable(GL_DITHER);
 
-   // glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHTING);
     // Enable color materials with ambient and diffuse lighting terms
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
@@ -81,15 +81,15 @@ void GLWidget::initializeGL()
 
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
 
-    // Set up GL_LIGHT0 with a position and lighting properties
-    GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
-    GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
-    //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position0[] = { 10.0f, 10.0f, 50.0f, 0.0f};
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
-    //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
-    glLightfv(GL_LIGHT0, GL_POSITION, position0);
+//    // Set up GL_LIGHT0 with a position and lighting properties
+//    GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
+//    GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
+//    //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
+//    GLfloat position0[] = { 10.0f, 10.0f, 50.0f, 0.0f};
+//    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
+//    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
+//    //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
+//    glLightfv(GL_LIGHT0, GL_POSITION, position0);
 
  /*   // Set up GL_LIGHT1 with a position and lighting properties
     GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
@@ -180,8 +180,11 @@ void GLWidget::createShaderPrograms()
     m_shaderPrograms["blur"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/blur.frag");
 
     m_shaderPrograms["bilat"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/bilat.frag");
+    m_shaderPrograms["bilat_high"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/bilat_high.frag");
 
     m_shaderPrograms["tonemap"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/tonemap.frag");
+    m_shaderPrograms["color"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/color.frag");
+    m_shaderPrograms["tester"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/tester.frag");
 }
 
 /**
@@ -205,11 +208,14 @@ void GLWidget::createFramebufferObjects(int width, int height)
     m_framebufferObjects["fbo_2"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 
-    m_framebufferObjects["fbo_3"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::Depth,
+    m_framebufferObjects["fbo_3"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 
     m_framebufferObjects["fbo_4"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
+    m_framebufferObjects["fbo_5"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
+                                                             GL_TEXTURE_2D, GL_RGB16F_ARB);
+
 }
 
 /**
@@ -282,46 +288,98 @@ void GLWidget::paintGL()
                                                        QRect(0, 0, width, height), m_framebufferObjects["fbo_0"],
                                                        QRect(0, 0, width, height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        // TODO: Add drawing code here
         applyOrthogonalCamera(width, height);
+        if(1==0)
+        {
+
+
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+            renderTexturedQuad(width, height, true);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            m_framebufferObjects["fbo_2"]->bind();
+            m_shaderPrograms["tonemap"]->bind();
+            m_shaderPrograms["tonemap"]->setUniformValue("exposure", m_exp);
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+            renderTexturedQuad(width, height, false);
+            m_shaderPrograms["tonemap"]->release();
+            glBindTexture(GL_TEXTURE_2D, 0);
+            m_framebufferObjects["fbo_2"]->release();
+
+            float scales[] = {4.f,8.f,16.f,32.f};
+            for (int i = 0; i < 1; ++i)//4; ++i)
+            {
+                // Render the blurred brightpass filter result to fbo 1
+                renderBlur(width / scales[i], height / scales[i]);
+
+                // Bind the image from fbo to a texture
+                glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+                // Enable alpha blending and render the texture to the screen
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE);
+                glTranslatef(0.f, (scales[i] - 1) * -height, 0.f);
+                renderTexturedQuad(width * scales[i], height * scales[i], false);
+                glDisable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+        }
+        else
+        {
+
+
+        m_framebufferObjects["fbo_3"]->bind();
+        m_shaderPrograms["bilat"]->bind();
         glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        renderTexturedQuad(width, height, true);
+        renderTexturedQuad(width, height, false);
+        m_shaderPrograms["bilat"]->release();
         glBindTexture(GL_TEXTURE_2D, 0);
+        m_framebufferObjects["fbo_3"]->release();
 
         m_framebufferObjects["fbo_2"]->bind();
         m_shaderPrograms["tonemap"]->bind();
         m_shaderPrograms["tonemap"]->setUniformValue("exposure", m_exp);
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        renderTexturedQuad(width, height, false);
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_3"]->texture());
+        renderTexturedQuad(width, height, true);
         m_shaderPrograms["tonemap"]->release();
         glBindTexture(GL_TEXTURE_2D, 0);
         m_framebufferObjects["fbo_2"]->release();
 
-        // TODO: Uncomment this section in step 2 of the lab
 
-        float scales[] = {4.f,8.f,16.f,32.f};
-        for (int i = 0; i < 4; ++i)
-        {
-            // Render the blurred brightpass filter result to fbo 1
-            renderBlur(width / scales[i], height / scales[i]);
+        m_framebufferObjects["fbo_4"]->bind();
+        m_shaderPrograms["bilat_high"]->bind();
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+        renderTexturedQuad(width, height, false);
+        m_shaderPrograms["bilat_high"]->release();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_framebufferObjects["fbo_4"]->release();
 
-            // Bind the image from fbo to a texture
-            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        m_framebufferObjects["fbo_5"]->bind();
+        m_shaderPrograms["color"]->bind();
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+        renderTexturedQuad(width, height, false);
+        m_shaderPrograms["color"]->release();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_framebufferObjects["fbo_5"]->release();
+//        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
+//        renderTexturedQuad(width, height, false);
 
-            // Enable alpha blending and render the texture to the screen
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE);
-            glTranslatef(0.f, (scales[i] - 1) * -height, 0.f);
-            renderTexturedQuad(width * scales[i], height * scales[i], false);
-            glDisable(GL_BLEND);
-            glBindTexture(GL_TEXTURE_2D, 0);
+//        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
+//        renderTexturedQuad(width, height, false);
+
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_5"]->texture());
+        renderTexturedQuad(width, height, false);
+
         }
+
+
     }
 
 
     paintText();
+
 }
 
 /**
@@ -342,13 +400,13 @@ void GLWidget::renderScene() {
 
     // Render the dragon with the refraction shader bound
     glActiveTexture(GL_TEXTURE0);
-    m_shaderPrograms["refract"]->bind();
-    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
-    glPushMatrix();
-    glTranslatef(-1.25f, 0.f, 0.f);
-    glCallList(m_dragon.idx);
-    glPopMatrix();
-    m_shaderPrograms["refract"]->release();
+//    m_shaderPrograms["refract"]->bind();
+//    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
+//    glPushMatrix();
+//    glTranslatef(-1.25f, 0.f, 0.f);
+//    glCallList(m_dragon.idx);
+//    glPopMatrix();
+//    m_shaderPrograms["refract"]->release();
 
    // Vector3 eta = Vector3(0.75, 0.77, 0.8);
     // Render the dragon with the reflection shader bound
@@ -558,6 +616,34 @@ void GLWidget::createBlurKernel(int radius, int width, int height,
     }
 }
 
+
+//Bilateral blur kernel, does not use offsets for spatial pyramiding
+void GLWidget::createBilatKernel(int radius, int width, int height, GLfloat* kernel)
+{
+    int size = radius * 2 + 1;
+    float sigma = radius / 3.0f;
+    float twoSigmaSigma = 2.0f * sigma * sigma;
+    float rootSigma = sqrt(twoSigmaSigma * M_PI);
+    float total = 0.0f;
+    for (int y = -radius, idx = 0; y <= radius; ++y)
+    {
+        for (int x = -radius; x <= radius; ++x,++idx)
+        {
+            float d = x * x + y * y;
+            kernel[idx] = exp(-d / twoSigmaSigma) / rootSigma;
+            total += kernel[idx];
+        }
+    }
+    for (int i = 0; i < size * size; ++i)
+    {
+        kernel[i] /= total;
+//        std::cout<<"bilat kernel: "<<kernel[i]<<std::endl;
+    }
+
+
+    //exit(0);
+}
+
 /**
   Handles any key press from the keyboard
  **/
@@ -630,7 +716,8 @@ void GLWidget::paintText()
     renderText(10, 35, "S: Save screenshot", m_font);
     renderText(10, 50, "O: Open new texture", m_font);
     renderText(10, 65, "E: Increase exposure", m_font);
-    renderText(10, 80, "H: HDR scene", m_font);
-    renderText(10, 95, "L: LDR scene", m_font);
+    renderText(10, 80, "D: Decrease exposure", m_font);
+    renderText(10, 95, "H: HDR scene", m_font);
+    renderText(10, 110, "L: LDR scene", m_font);
 
 }

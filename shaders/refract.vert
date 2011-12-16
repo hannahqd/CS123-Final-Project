@@ -1,5 +1,5 @@
 varying vec3 normal, lightDir, r;
-const vec3 L = vec3(0.,0.,1.);
+const vec3 L = vec3(0.,1.,0.);
 void main()
 {
         gl_Position = ftransform();

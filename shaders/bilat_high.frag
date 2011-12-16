@@ -52,7 +52,7 @@ int arraySize = size*size;
         blurColor = blurColor + convTemp;
     }
 
-    vec4 temp = curr-blurColor;
-    temp = dot(avgVector, temp);
+
+    vec4 temp = dot(avgVector, blurColor);
     gl_FragColor = temp;
 }

@@ -7,8 +7,7 @@ void main(void) {
 
     float luminance = max(0.0, dot(avgVector, sample.rgb));
 
-
-    sample.rgb = exposure*luminance/(luminance +1);
+    sample.rgb = vec3(1.0, 1.0, 1.0)*exposure*luminance/(luminance+1.0);
 
     gl_FragColor = sample;
 }
