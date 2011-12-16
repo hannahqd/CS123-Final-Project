@@ -1,5 +1,5 @@
 #include "resourceloader.h"
-
+#include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 #include <QList>
 #include <QString>
@@ -14,7 +14,7 @@
   six) in order
   @return the assigned OpenGL id to the cube map
 **/
-GLuint ResourceLoader::loadCubeMap(QList<QFile *> files)
+GLuint ResourceLoader::loadCubeMap(char* filename)//QList<QFile *> files)
 {
     //Q_ASSERT(files.length() == 1);//For LDR: 6);
 
@@ -39,7 +39,7 @@ GLuint ResourceLoader::loadCubeMap(QList<QFile *> files)
 
     int height;
     int width;
-    FILE *hdrfile = fopen("../final/textures/uffizi_cross.hdr", "rb");
+    FILE *hdrfile = fopen(filename, "rb");
     RGBE_ReadHeader(hdrfile, &width, &height, NULL);
     //TODO: may want to make this data accessible elsewhere?? also memory delete...
     float* hdrpix = new float[3*width*height];
@@ -157,6 +157,8 @@ GLuint ResourceLoader::loadCubeMap(QList<QFile *> files)
     // Unbind the texture
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 
+    std::cout<<"skybox texture : "<<id<<std::endl;
+
     delete hdrpix;
     return id;
 }
@@ -177,11 +179,16 @@ Model ResourceLoader::loadObjModel(QString filePath)
 /**
     Creates a call list for a skybox
   **/
-GLuint ResourceLoader::loadSkybox()
+GLuint ResourceLoader::loadSkybox(GLuint cubeMapID)
 {
     GLuint id = glGenLists(1);
     glNewList(id, GL_COMPILE);
 
+//    const QGLContext *ctx = QGLContext::currentContext();
+//    QGLShaderProgram * tonemapper = newFragShaderProgram(ctx, "../final/shaders/tonemap.frag");
+//    QGLFramebufferObject * fbo = new QGLFramebufferObject(256, 256, QGLFramebufferObject::Depth,
+//                                                             GL_TEXTURE_CUBE_MAP, GL_RGB16F_ARB);
+//    fbo->format().setSamples(16);
     // Be glad we wrote this for you...ugh.
     glBegin(GL_QUADS);
     float extent = 100.f;
@@ -212,6 +219,7 @@ GLuint ResourceLoader::loadSkybox()
     glEnd();
     glEndList();
 
+//    delete tonemapper;
     return id;
 }
 

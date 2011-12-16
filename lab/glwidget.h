@@ -35,7 +35,7 @@ protected:
 
     // Initialization code
     void initializeResources();
-    void loadCubeMap();
+    void loadCubeMap(char* filename);
     void createShaderPrograms();
     void createFramebufferObjects(int width, int height);
     void createBlurKernel(int radius, int width, int height, GLfloat* kernel, GLfloat* offsets);
@@ -64,6 +64,8 @@ private:
     GLuint m_skybox; // skybox call list ID
     GLuint m_cubeMap; // cubeMap texture ID
     QFont m_font; // font for rendering text
+    float m_exp; //image exposure
+    bool m_isHDR;
 
 };
 

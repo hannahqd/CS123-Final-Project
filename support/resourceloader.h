@@ -25,7 +25,7 @@ namespace ResourceLoader
     Model loadObjModel(QString filePath);
 
     // Returns the skybox ID
-    GLuint loadSkybox();
+    GLuint loadSkybox(GLuint cubeMapID);
 
     // These return a new QGLShaderProgram.  THIS MUST BE DELETED BY THE CALLER.
     QGLShaderProgram * newVertShaderProgram(const QGLContext *context, QString vertShader);
@@ -33,7 +33,7 @@ namespace ResourceLoader
     QGLShaderProgram * newShaderProgram(const QGLContext *context, QString vertShader, QString fragShader);
 
     // Returns the cubeMap ID
-    GLuint loadCubeMap(QList<QFile *> files);
+    GLuint loadCubeMap(char* filename);//(QList<QFile *> files);
 
 }
 
