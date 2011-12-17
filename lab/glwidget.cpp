@@ -36,7 +36,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     m_camera.theta = M_PI * 1.5f, m_camera.phi = 0.2f;
     m_camera.fovy = 60.f;
 
-    m_exp = 1.0;
+    m_exp = 0.50;
     m_isHDR = true;
 
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
@@ -102,7 +102,6 @@ void GLWidget::initializeGL()
     glLightfv(GL_LIGHT1, GL_POSITION, position1);
 */
 
-
     // Set up material properties
     GLfloat shiny = 25;
     GLfloat ambientMat[] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -135,7 +134,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
+    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/objAnotexture.obj");
     cout << "Loaded dragon..." << endl;
 
     char* cube_map = "../final/textures/stpeters_cross.hdr";
@@ -173,6 +172,8 @@ void GLWidget::createShaderPrograms()
                                                                    "../final/shaders/shadow.frag");
     m_shaderPrograms["refract"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/refract.vert",
                                                                    "../final/shaders/refract.frag");
+    m_shaderPrograms["refractFres"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/refractFres.vert",
+                                                                   "../final/shaders/refractFres.frag");
     m_shaderPrograms["basic"] = ResourceLoader::newShaderProgram(ctx, "../final/shaders/basic.vert",
                                                                    "../final/shaders/basic.frag");
 
@@ -249,6 +250,25 @@ void GLWidget::applyPerspectiveCamera(float width, float height)
     glLoadIdentity();
 }
 
+
+float gauss(float coeff, float sigsqX2, int x){
+    float gaussian = (coeff)*(pow(M_E, ((-(x * x))/sigsqX2)));
+    return gaussian;
+}
+
+void computeKernel(float* kern, int rad){
+    int kernLen = (2 * rad) + 1;
+    float sigma = (rad/3.0);
+    float sr2pi = (sqrt(2 * M_PI));
+    float sigXsr2pi = (sigma * sr2pi);
+    float sigsqX2 = (2 * (sigma * sigma));
+    float coeff = (1/sigXsr2pi);
+    for(int i = 0; i < kernLen; i++){
+      int x = rad - i;
+      kern[i] = gauss(coeff, sigsqX2, x);
+  }
+}
+
 /**
   Draws the scene to a buffer which is rendered to the screen when this function exits.
  **/
@@ -297,6 +317,53 @@ void GLWidget::paintGL()
         glBindTexture(GL_TEXTURE_2D, 0);
         m_framebufferObjects["fbo_2"]->release();
 
+
+
+ /*       int radius = 4;
+        int size = radius * 2 + 1;
+        GLfloat kernel[size];
+        //GLfloat offsets;
+        float sigma = radius / 3.0f;
+        float twoSigmaSigma = 2.0f * sigma * sigma;
+        float rootSigma = sqrt(twoSigmaSigma * M_PI);
+        float total = 0.0f;
+        //float xOff = 1.0f / width, yOff = 1.0f / height;
+        //int offsetIndex = 0;
+        for (int y = -radius, idx = 0; y <= radius; ++y)
+        {
+            for (int x = -radius; x <= radius; ++x,++idx)
+            {
+                float d = x * x + y * y;
+                //kernel[idx] = exp(-d / twoSigmaSigma) / rootSigma;
+                //total += kernel[idx];
+          //      offsets[offsetIndex++] = x * xOff;
+          //      offsets[offsetIndex++] = y * yOff;
+            }
+        }
+        for (int i = 0; i < size * size; ++i)
+        {
+            kernel[i] /= total;
+        }
+
+
+        int radius = 3;
+        int dim = radius * 2 + 1;
+        int dim2 = dim * dim;
+        GLfloat kernel[dim2];
+        GLfloat offsets[dim2 * 2];
+        createBlurKernel(radius, width, height, &kernel[0], &offsets[0]);
+
+        m_framebufferObjects["fbo_3"]->bind();
+        m_shaderPrograms["blur"]->bind();
+        m_shaderPrograms["blur"]->setUniformValue("arraySize", dim2);
+        m_shaderPrograms["blur"]->setUniformValueArray('kernel', kernel, dim2, 1);
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
+        renderTexturedQuad(width, height, true);
+        m_shaderPrograms["blur"]->release();
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_framebufferObjects["fbo_3"]->release();
+        */
+
         // TODO: Uncomment this section in step 2 of the lab
 
         float scales[] = {4.f,8.f,16.f,32.f};
@@ -342,13 +409,13 @@ void GLWidget::renderScene() {
 
     // Render the dragon with the refraction shader bound
     glActiveTexture(GL_TEXTURE0);
-    m_shaderPrograms["refract"]->bind();
-    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    m_shaderPrograms["refractFres"]->bind();
+    m_shaderPrograms["refractFres"]->setUniformValue("CubeMap", GL_TEXTURE0);
     glPushMatrix();
     glTranslatef(-1.25f, 0.f, 0.f);
     glCallList(m_dragon.idx);
     glPopMatrix();
-    m_shaderPrograms["refract"]->release();
+    m_shaderPrograms["refractFres"]->release();
 
    // Vector3 eta = Vector3(0.75, 0.77, 0.8);
     // Render the dragon with the reflection shader bound
