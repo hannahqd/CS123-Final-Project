@@ -38,7 +38,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
 
     m_exp = 1.0;
     m_isHDR = true;
-
+    m_isBilat = false;
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
@@ -77,9 +77,9 @@ void GLWidget::initializeGL()
 
     // Set up global (ambient) lighting
     GLfloat global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
+//    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
 
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
+//    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
 
 //    // Set up GL_LIGHT0 with a position and lighting properties
 //    GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
@@ -292,7 +292,9 @@ void GLWidget::paintGL()
                                                        QRect(0, 0, width, height), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
         applyOrthogonalCamera(width, height);
-        if(1==0)
+
+        //render with global tone mapping
+        if(!m_isBilat)
         {
 
 
@@ -329,74 +331,75 @@ void GLWidget::paintGL()
                 glBindTexture(GL_TEXTURE_2D, 0);
             }
         }
+        //render with bilateral filter mapping
         else
         {
 
 
-        m_framebufferObjects["fbo_3"]->bind();
-        m_shaderPrograms["bilat"]->bind();
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        renderTexturedQuad(width, height, false);
-        m_shaderPrograms["bilat"]->release();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_framebufferObjects["fbo_3"]->release();
-
-        m_framebufferObjects["fbo_2"]->bind();
-        m_shaderPrograms["tonemap"]->bind();
-        m_shaderPrograms["tonemap"]->setUniformValue("exposure", m_exp);
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_3"]->texture());
-        renderTexturedQuad(width, height, true);
-        m_shaderPrograms["tonemap"]->release();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_framebufferObjects["fbo_2"]->release();
-
-
-        m_framebufferObjects["fbo_4"]->bind();
-        m_shaderPrograms["bilat_high"]->bind();
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        renderTexturedQuad(width, height, false);
-        m_shaderPrograms["bilat_high"]->release();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_framebufferObjects["fbo_4"]->release();
-
-        m_framebufferObjects["fbo_5"]->bind();
-        m_shaderPrograms["color"]->bind();
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-        renderTexturedQuad(width, height, false);
-        m_shaderPrograms["color"]->release();
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_framebufferObjects["fbo_5"]->release();
-
-        m_framebufferObjects["fbo_6"]->bind();
-
-            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
+            m_framebufferObjects["fbo_3"]->bind();
+            m_shaderPrograms["bilat"]->bind();
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
             renderTexturedQuad(width, height, false);
+            m_shaderPrograms["bilat"]->release();
             glBindTexture(GL_TEXTURE_2D, 0);
+            m_framebufferObjects["fbo_3"]->release();
 
-            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
+            m_framebufferObjects["fbo_2"]->bind();
+            m_shaderPrograms["tonemap"]->bind();
+            m_shaderPrograms["tonemap"]->setUniformValue("exposure", m_exp);
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_3"]->texture());
+            renderTexturedQuad(width, height, true);
+            m_shaderPrograms["tonemap"]->release();
+            glBindTexture(GL_TEXTURE_2D, 0);
+            m_framebufferObjects["fbo_2"]->release();
 
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE);
+
+            m_framebufferObjects["fbo_4"]->bind();
+            m_shaderPrograms["bilat_high"]->bind();
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
             renderTexturedQuad(width, height, false);
-            glDisable(GL_BLEND);
+            m_shaderPrograms["bilat_high"]->release();
             glBindTexture(GL_TEXTURE_2D, 0);
+            m_framebufferObjects["fbo_4"]->release();
 
-            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_5"]->texture());
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+            m_framebufferObjects["fbo_5"]->bind();
+            m_shaderPrograms["color"]->bind();
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
             renderTexturedQuad(width, height, false);
-            glDisable(GL_BLEND);
+            m_shaderPrograms["color"]->release();
             glBindTexture(GL_TEXTURE_2D, 0);
+            m_framebufferObjects["fbo_5"]->release();
+
+            m_framebufferObjects["fbo_6"]->bind();
+
+                glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
+                renderTexturedQuad(width, height, false);
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
+
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE);
+                renderTexturedQuad(width, height, false);
+                glDisable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, 0);
+
+                glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_5"]->texture());
+
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+                renderTexturedQuad(width, height, false);
+                glDisable(GL_BLEND);
+                glBindTexture(GL_TEXTURE_2D, 0);
 
 
-        m_framebufferObjects["fbo_6"]->release();
+            m_framebufferObjects["fbo_6"]->release();
 
-        m_shaderPrograms["combine"]->bind();
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_6"]->texture());
-        renderTexturedQuad(width, height, true);
-        m_shaderPrograms["combine"]->release();
-        glBindTexture(GL_TEXTURE_2D, 0);
+            m_shaderPrograms["combine"]->bind();
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_6"]->texture());
+            renderTexturedQuad(width, height, true);
+            m_shaderPrograms["combine"]->release();
+            glBindTexture(GL_TEXTURE_2D, 0);
 
 
 
@@ -700,19 +703,29 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         break;
         case Qt::Key_E:
         {
-            m_exp += 0.1;
+            m_exp += 0.2;
             paintGL();
         }
         break;
         case Qt::Key_D:
         {
-            m_exp -= 0.1;
+            m_exp -= 0.2;
             paintGL();
         }
         break;
         case Qt::Key_H:
         {
             m_isHDR = true;
+            m_isBilat = true;
+            std::cout<<"USING BILATERAL"<<std::endl;
+            paintGL();
+        }
+        break;
+        case Qt::Key_G:
+        {
+            m_isHDR = true;
+            m_isBilat = false;
+            std::cout<<"USING GLOBAL"<<std::endl;
             paintGL();
         }
         break;
@@ -745,7 +758,8 @@ void GLWidget::paintText()
     renderText(10, 50, "O: Open new texture", m_font);
     renderText(10, 65, "E: Increase exposure", m_font);
     renderText(10, 80, "D: Decrease exposure", m_font);
-    renderText(10, 95, "H: HDR scene", m_font);
-    renderText(10, 110, "L: LDR scene", m_font);
+    renderText(10, 95, "H: HDR scene -bilateral fusion", m_font);
+    renderText(10, 110, "G: HDR scene -global tone mapping", m_font);
+    renderText(10, 125, "L: LDR scene", m_font);
 
 }
