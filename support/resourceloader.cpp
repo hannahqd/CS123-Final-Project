@@ -159,6 +159,12 @@ GLuint ResourceLoader::loadCubeMap(char* filename)//QList<QFile *> files)
 
     std::cout<<"skybox texture : "<<id<<std::endl;
 
+    delete posx;
+    delete posy;
+    delete posz;
+    delete negx;
+    delete negy;
+    delete negz;
     delete hdrpix;
     return id;
 }

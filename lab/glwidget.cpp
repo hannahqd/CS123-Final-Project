@@ -54,6 +54,9 @@ GLWidget::~GLWidget()
     glDeleteLists(m_skybox, 1);
     const_cast<QGLContext *>(context())->deleteTexture(m_cubeMap);
     glmDelete(m_dragon.model);
+    glmDelete(m_sphere.model);
+    glmDelete(m_model1.model);
+    glmDelete(m_model2.model);
 }
 
 /**
@@ -134,8 +137,19 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
+
+    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/dragon.obj");
     cout << "Loaded dragon..." << endl;
+
+    m_sphere = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
+    cout << "Loaded sphere..." << endl;
+
+    m_model1 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/objAnotexture.obj");
+    cout << "Loaded sphere..." << endl;
+
+    m_model2 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/dragon.obj");
+    cout << "Loaded sphere..." << endl;
+
 
     char* cube_map = "../final/textures/stpeters_cross.hdr";
     loadCubeMap(cube_map);
@@ -492,20 +506,20 @@ void GLWidget::renderScene() {
     m_shaderPrograms["refract"]->release();
 
 
-   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
+//   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
     // Render the dragon with the reflection shader bound
     m_shaderPrograms["reflect"]->bind();
     m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
 
-    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
-    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
-    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
-    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
+//    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
+//    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
 
     m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
-    glCallList(m_dragon.idx);
+    glCallList(m_sphere.idx);
     glPopMatrix();
     m_shaderPrograms["reflect"]->release();
 
@@ -544,7 +558,7 @@ void GLWidget::renderShadowScene() {
     // Render the second model
     glPushMatrix();
     glTranslatef(1.25f,0.f,0.f);
-    glCallList(m_dragon.idx);
+    glCallList(m_sphere.idx);
     glPopMatrix();
 
 //    // Disable culling, depth testing and cube maps
