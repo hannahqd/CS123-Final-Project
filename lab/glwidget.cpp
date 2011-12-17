@@ -184,6 +184,7 @@ void GLWidget::createShaderPrograms()
 
     m_shaderPrograms["tonemap"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/tonemap.frag");
     m_shaderPrograms["color"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/color.frag");
+    m_shaderPrograms["combine"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/combine.frag");
     m_shaderPrograms["tester"] = ResourceLoader::newFragShaderProgram(ctx, "../final/shaders/tester.frag");
 }
 
@@ -214,6 +215,8 @@ void GLWidget::createFramebufferObjects(int width, int height)
     m_framebufferObjects["fbo_4"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
     m_framebufferObjects["fbo_5"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
+                                                             GL_TEXTURE_2D, GL_RGB16F_ARB);
+    m_framebufferObjects["fbo_6"] = new QGLFramebufferObject(width, height, QGLFramebufferObject::NoAttachment,
                                                              GL_TEXTURE_2D, GL_RGB16F_ARB);
 
 }
@@ -363,14 +366,39 @@ void GLWidget::paintGL()
         m_shaderPrograms["color"]->release();
         glBindTexture(GL_TEXTURE_2D, 0);
         m_framebufferObjects["fbo_5"]->release();
-//        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
-//        renderTexturedQuad(width, height, false);
 
-//        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
-//        renderTexturedQuad(width, height, false);
+        m_framebufferObjects["fbo_6"]->bind();
 
-        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_5"]->texture());
-        renderTexturedQuad(width, height, false);
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
+            renderTexturedQuad(width, height, false);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
+            renderTexturedQuad(width, height, false);
+            glDisable(GL_BLEND);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_5"]->texture());
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);
+            renderTexturedQuad(width, height, false);
+            glDisable(GL_BLEND);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+
+        m_framebufferObjects["fbo_6"]->release();
+
+        m_shaderPrograms["combine"]->bind();
+        glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_6"]->texture());
+        renderTexturedQuad(width, height, true);
+        m_shaderPrograms["combine"]->release();
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+
 
         }
 
