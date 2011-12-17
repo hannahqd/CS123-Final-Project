@@ -69,6 +69,7 @@ private:
     QFont m_font; // font for rendering text
     float m_exp; //image exposure
     bool m_isHDR;
+    bool m_isBilat;
 
 };
 
