@@ -39,6 +39,7 @@ protected:
     void createShaderPrograms();
     void createFramebufferObjects(int width, int height);
     void createBlurKernel(int radius, int width, int height, GLfloat* kernel, GLfloat* offsets);
+    void createBilatKernel(int radius, int width, int height, GLfloat* kernel);
 
     // Drawing code
     void applyOrthogonalCamera(float width, float height);

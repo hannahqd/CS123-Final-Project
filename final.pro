@@ -44,5 +44,8 @@ OTHER_FILES += shaders/refract.vert \
     shaders/bilat.frag \
     shaders/refractFres.frag \
     shaders/refractFres.vert
-
-RESOURCES +=
+    shaders/bilat_high.frag \
+    shaders/tester.frag \
+    shaders/color.frag \
+    shaders/combine.frag
+RESOURCES += 
