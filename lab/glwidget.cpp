@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QWheelEvent>
 #include "glm.h"
+#include <math.h>
 
 using std::cout;
 using std::endl;
@@ -39,6 +40,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     m_exp = 0.50;
     m_isHDR = true;
     m_isBilat = false;
+    m_increment = 0.0;
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
 }
 
@@ -142,6 +144,9 @@ void GLWidget::initializeResources()
     cout << "Loaded dragon..." << endl;
 
     m_sphere = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
+    cout << "Loaded sphere..." << endl;
+
+    m_elephant = ResourceLoader::loadObjModel("/home/gen/courses/Courses_Fall2011/cs123/final/models/elephal.obj");
     cout << "Loaded sphere..." << endl;
 
     m_model1 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/objAnotexture.obj");
@@ -483,6 +488,19 @@ void GLWidget::paintGL()
   Renders the scene.  May be called multiple times by paintGL() if necessary.
 **/
 void GLWidget::renderScene() {
+
+    float div_val = 1.0;
+    if(!m_isBilat)
+    {
+    if(!m_isHDR){
+        div_val = 250;
+    }
+    else{
+        div_val = 100;
+    }
+
+    float time = m_increment++ / div_val;
+
     // Enable depth testing
     glEnable(GL_DEPTH_TEST);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -499,10 +517,103 @@ void GLWidget::renderScene() {
     glActiveTexture(GL_TEXTURE0);
     m_shaderPrograms["refract"]->bind();
     m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
+
+    float xs[4] = {6, -3, -3, 6};
+    float ys[4] = {0, 3, -3, 0};
+//    B[0] = 1;
+//    for (j = 0; j < n; j++)
+//     for (i = j; i => 0; i--){
+//       B[i+1] += t*B[i];
+//       B[i] += (1-t)*B[i];
+//     }
+    int count;
+    for(int j = 0; j < 4; j++){
+         for(int i = j; i >= 0; i--){
+           count++;
+         }
+     }
+
+    float *bez = new float[count];
+
+    bez[0] = 1;
+    for (int j = 0; j < 4; j++){
+        for(int i = j; i >= 0; i--){
+            bez[i+1] += time*bez[i];
+            bez[i] += (1-time)*bez[i];
+            std::cout<<bez[i]<<std::endl;
+        }
+    }
+
+    float px;
+    float py;
+    for (int j = 0; j < 4; j++){
+        for(int i = j; i >= 0; i--){
+            px = bez[i] * xs[j];
+            py = bez[i] * ys[j];
+        }
+    }
+
+
     glPushMatrix();
-    glTranslatef(-1.25f, 0.f, 0.f);
-    glCallList(m_dragon.idx);
+//        float rad =1.5f;
+//        float a1 = -rad*cos(fmod(time, (2*M_PI)));
+//        float a2 = rad*sin(fmod(time, (2*M_PI)));
+//        float a3 = 0.f;
+        glTranslatef(px, py, 0);
+        glScalef(0.3f, 0.3f, 0.3f);
+
+//        float angle;
+//        if(a1 >=0){
+//            angle= atan(a2/a1)*180.0/M_PI - 90;
+//        }
+//        else{
+//            angle= atan(a2/a1)*180.0/M_PI + 90;
+//        }
+//        glRotatef(angle, 0, 0, 1);
+//        glRotatef(180, 0, 1, 0);
+        glCallList(m_model1.idx);
     glPopMatrix();
+
+
+    glPushMatrix();
+        float rad =1.5f;
+        float a1 = -rad*cos(fmod(time, (2*M_PI)));
+        float a2 = rad*sin(fmod(time, (2*M_PI)));
+        float a3 = 0.f;
+        glTranslatef(a1, a2, a3);
+        glScalef(0.3f, 0.3f, 0.3f);
+
+        float angle;
+        if(a1 >=0){
+            angle= atan(a2/a1)*180.0/M_PI - 90;
+        }
+        else{
+            angle= atan(a2/a1)*180.0/M_PI + 90;
+        }
+        glRotatef(angle, 0, 0, 1);
+        glRotatef(180, 0, 1, 0);
+        glCallList(m_dragon.idx);
+    glPopMatrix();
+
+    glPushMatrix();
+
+        a1 =-rad*cos(fmod(time+0.5, (2*M_PI)));
+        a2 =rad*sin(fmod(time+0.5, (2*M_PI)));
+        glTranslatef(a1, a2, a3);
+        glScalef(0.3f, 0.3f, 0.3f);
+
+        angle;
+        if(a1 >=0){
+            angle = atan(a2/a1)*180.0/M_PI - 90;
+        }
+        else{
+            angle = atan(a2/a1)*180.0/M_PI + 90;
+        }
+        glRotatef(angle, 0, 0, 1);
+        glRotatef(90, 0, 1, 0);
+        glCallList(m_elephant.idx);
+    glPopMatrix();
+
     m_shaderPrograms["refract"]->release();
 
 
@@ -518,7 +629,7 @@ void GLWidget::renderScene() {
 
     m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
-    glTranslatef(1.25f,0.f,0.f);
+    //glTranslatef(0.0f,0.f,0.f);
     glCallList(m_sphere.idx);
     glPopMatrix();
     m_shaderPrograms["reflect"]->release();
@@ -528,6 +639,67 @@ void GLWidget::renderScene() {
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_CUBE_MAP,0);
     glDisable(GL_TEXTURE_CUBE_MAP);
+
+    delete bez;
+    }
+
+    else
+    {
+        float time = m_increment++ / div_val;
+
+        // Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        // Enable cube maps and draw the skybox
+        glEnable(GL_TEXTURE_CUBE_MAP);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMap);
+        glCallList(m_skybox);
+
+        // Enable culling (back) faces for rendering the dragon
+        glEnable(GL_CULL_FACE);
+
+        // Render the dragon with the refraction shader bound
+        glActiveTexture(GL_TEXTURE0);
+        m_shaderPrograms["refract"]->bind();
+        m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
+
+        glPushMatrix();
+            float rad =1.5f;
+            glTranslatef(rad, 0.f, 0.f);
+            glScalef(0.3f, 0.3f, 0.3f);
+            glRotatef(-45, 0, 0, 1);
+            glRotatef(180, 0, 1, 0);
+            glCallList(m_dragon.idx);
+        glPopMatrix();
+
+        m_shaderPrograms["refract"]->release();
+
+
+    //   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
+        // Render the dragon with the reflection shader bound
+        m_shaderPrograms["reflect"]->bind();
+        m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
+
+    //    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
+    //    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
+    //    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
+    //    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
+
+        m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
+        glPushMatrix();
+        //glTranslatef(0.0f,0.f,0.f);
+        glCallList(m_sphere.idx);
+        glPopMatrix();
+        m_shaderPrograms["reflect"]->release();
+
+        // Disable culling, depth testing and cube maps
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
+        glBindTexture(GL_TEXTURE_CUBE_MAP,0);
+        glDisable(GL_TEXTURE_CUBE_MAP);
+    }
+
 }
 
 void GLWidget::renderShadowScene() {
