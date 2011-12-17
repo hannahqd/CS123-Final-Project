@@ -40,6 +40,7 @@ GLWidget::GLWidget(QWidget *parent) : QGLWidget(parent),
     m_exp = 0.50;
     m_isHDR = true;
     m_isBilat = false;
+    m_isEdges = false;
     m_increment = 0.0;
     connect(&m_timer, SIGNAL(timeout()), this, SLOT(update()));
 }
@@ -79,33 +80,6 @@ void GLWidget::initializeGL()
     // Enable color materials with ambient and diffuse lighting terms
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
-
-    // Set up global (ambient) lighting
-    GLfloat global_ambient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
-//    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, global_ambient);
-
-//    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
-
-//    // Set up GL_LIGHT0 with a position and lighting properties
-//    GLfloat ambientLight0[] = {0.25f, 0.1625f, 0.05f, 1.0f};
-//    GLfloat diffuseLight0[] = { 2.0f, 1.0f, 0.4, 1.0f };
-//    //GLfloat specularLight0[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-//    GLfloat position0[] = { 10.0f, 10.0f, 50.0f, 0.0f};
-//    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientLight0);
-//    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseLight0);
-//    //glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight0);
-//    glLightfv(GL_LIGHT0, GL_POSITION, position0);
-
- /*   // Set up GL_LIGHT1 with a position and lighting properties
-    GLfloat ambientLight1[] = {0.1f, 0.2f, 0.5f, 1.0f};
-    GLfloat diffuseLight1[] = { 1.0f, 0.0f, 1.0, 1.0f };
-    GLfloat specularLight1[] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    GLfloat position1[] = { 4.0f, -5.0f, 0.0f, 1.0f };
-    glLightfv(GL_LIGHT1, GL_AMBIENT, ambientLight1);
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuseLight1);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, specularLight1);
-    glLightfv(GL_LIGHT1, GL_POSITION, position1);
-*/
 
     // Set up material properties
     GLfloat shiny = 25;
@@ -391,6 +365,8 @@ void GLWidget::paintGL()
         glBindTexture(GL_TEXTURE_2D, 0);
         m_framebufferObjects["fbo_2"]->release();
 
+
+
         m_framebufferObjects["fbo_4"]->bind();
         m_shaderPrograms["bilat_high"]->bind();
         glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
@@ -398,6 +374,14 @@ void GLWidget::paintGL()
         m_shaderPrograms["bilat_high"]->release();
         glBindTexture(GL_TEXTURE_2D, 0);
         m_framebufferObjects["fbo_4"]->release();
+
+        if(m_isEdges){
+            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_4"]->texture());
+            renderTexturedQuad(width, height, false);
+
+            paintText();
+            return;
+        }
 
         m_framebufferObjects["fbo_5"]->bind();
         m_shaderPrograms["color"]->bind();
@@ -484,6 +468,19 @@ void GLWidget::paintGL()
 
 }
 
+int fact(int n){
+    if(n <= 0)
+        return 1;
+    else
+        return (n * fact(n - 1));
+}
+
+float bernstein(int n, int j, float t){
+    float b = fact(n)/((fact(j) * fact(n - j))) * pow(t, j) * pow((1-t), (n-j));
+    return b;
+}
+
+
 /**
   Renders the scene.  May be called multiple times by paintGL() if necessary.
 **/
@@ -518,62 +515,29 @@ void GLWidget::renderScene() {
     m_shaderPrograms["refract"]->bind();
     m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
 
-    float xs[4] = {6, -3, -3, 6};
-    float ys[4] = {0, 3, -3, 0};
-//    B[0] = 1;
-//    for (j = 0; j < n; j++)
-//     for (i = j; i => 0; i--){
-//       B[i+1] += t*B[i];
-//       B[i] += (1-t)*B[i];
-//     }
-    int count;
+    float xs[4] = {2, 40, -30, 2};
+    float ys[4] = {2, 40, -20, 2};
+
+    //Make star points...
+
+    float t = fmod(time, 1);
+    float px = 0;
+    float py = 0;
+    int count = 0;
+
     for(int j = 0; j < 4; j++){
-         for(int i = j; i >= 0; i--){
-           count++;
-         }
-     }
-
-    float *bez = new float[count];
-
-    bez[0] = 1;
-    for (int j = 0; j < 4; j++){
-        for(int i = j; i >= 0; i--){
-            bez[i+1] += time*bez[i];
-            bez[i] += (1-time)*bez[i];
-            std::cout<<bez[i]<<std::endl;
-        }
+        std::cout<<"t: "<<t<<std::endl;
+        px += xs[j] * bernstein(3, j, t);
+        py += ys[j] * bernstein(3, j, t);
+        std::cout<<"bern: "<<bernstein(3, j, t)<<std::endl;
     }
 
-    float px;
-    float py;
-    for (int j = 0; j < 4; j++){
-        for(int i = j; i >= 0; i--){
-            px = bez[i] * xs[j];
-            py = bez[i] * ys[j];
-        }
-    }
-
-
-    glPushMatrix();
-//        float rad =1.5f;
-//        float a1 = -rad*cos(fmod(time, (2*M_PI)));
-//        float a2 = rad*sin(fmod(time, (2*M_PI)));
-//        float a3 = 0.f;
-        glTranslatef(px, py, 0);
-        glScalef(0.3f, 0.3f, 0.3f);
-
-//        float angle;
-//        if(a1 >=0){
-//            angle= atan(a2/a1)*180.0/M_PI - 90;
-//        }
-//        else{
-//            angle= atan(a2/a1)*180.0/M_PI + 90;
-//        }
-//        glRotatef(angle, 0, 0, 1);
-//        glRotatef(180, 0, 1, 0);
-        glCallList(m_model1.idx);
-    glPopMatrix();
-
+        glPushMatrix();
+            glTranslatef(px, py, 0);
+            glScalef(0.5f, 0.5f, 0.5f);
+            glCallList(m_model1.idx);
+        glPopMatrix();
+   
 
     glPushMatrix();
         float rad =1.5f;
@@ -616,17 +580,9 @@ void GLWidget::renderScene() {
 
     m_shaderPrograms["refract"]->release();
 
-
-//   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
     // Render the dragon with the reflection shader bound
     m_shaderPrograms["reflect"]->bind();
     m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
-
-//    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
-//    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
-
     m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
     glPushMatrix();
     //glTranslatef(0.0f,0.f,0.f);
@@ -639,8 +595,6 @@ void GLWidget::renderScene() {
     glDisable(GL_DEPTH_TEST);
     glBindTexture(GL_TEXTURE_CUBE_MAP,0);
     glDisable(GL_TEXTURE_CUBE_MAP);
-
-    delete bez;
     }
 
     else
@@ -675,20 +629,11 @@ void GLWidget::renderScene() {
 
         m_shaderPrograms["refract"]->release();
 
-
-    //   // Vector3 eta = Vector3(0.75, 0.77, 0.8);
         // Render the dragon with the reflection shader bound
         m_shaderPrograms["reflect"]->bind();
         m_shaderPrograms["reflect"]->setUniformValue("envMap", GL_TEXTURE0);
-
-    //    m_shaderPrograms["reflect"]->setUniformValue("eta1D", 0.9f);
-    //    m_shaderPrograms["reflect"]->setUniformValue("etaR", 0.91f);
-    //    m_shaderPrograms["reflect"]->setUniformValue("etaG", 0.93f);
-    //    m_shaderPrograms["reflect"]->setUniformValue("etaB", 0.96f);
-
         m_shaderPrograms["reflect"]->setUniformValue("r0", 0.4f);
         glPushMatrix();
-        //glTranslatef(0.0f,0.f,0.f);
         glCallList(m_sphere.idx);
         glPopMatrix();
         m_shaderPrograms["reflect"]->release();
@@ -700,47 +645,6 @@ void GLWidget::renderScene() {
         glDisable(GL_TEXTURE_CUBE_MAP);
     }
 
-}
-
-void GLWidget::renderShadowScene() {
-    // Enable depth testing
-
-  //  m_framebufferObjects["fbo_3"]->bind();
-    glPushMatrix();
-    glTranslatef(0.f, -2.f, 10.f);
-
-    glEnable(GL_DEPTH_TEST);
-    glClear(GL_DEPTH_BUFFER_BIT);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Enable culling (back) faces for rendering the dragon
-    glCullFace(GL_FRONT);
-    glEnable(GL_CULL_FACE);
-
-    // Render the first model
-//    glActiveTexture(GL_TEXTURE0);
-//    m_shaderPrograms["refract"]->bind();
-//    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
-    glPushMatrix();
-    glTranslatef(-1.25f, 0.f, 0.f);
-    glCallList(m_dragon.idx);
-    glPopMatrix();
-//    m_shaderPrograms["refract"]->release();
-
-    // Render the second model
-    glPushMatrix();
-    glTranslatef(1.25f,0.f,0.f);
-    glCallList(m_sphere.idx);
-    glPopMatrix();
-
-//    // Disable culling, depth testing and cube maps
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-//    m_framebufferObjects["fbo_3"]->release();
-
-    glPopMatrix();
-
-    glBindTexture(GL_TEXTURE_CUBE_MAP,0);
 }
 
 /**
@@ -907,11 +811,7 @@ void GLWidget::createBilatKernel(int radius, int width, int height, GLfloat* ker
     for (int i = 0; i < size * size; ++i)
     {
         kernel[i] /= total;
-//        std::cout<<"bilat kernel: "<<kernel[i]<<std::endl;
     }
-
-
-    //exit(0);
 }
 
 /**
@@ -956,6 +856,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         {
             m_isHDR = true;
             m_isBilat = true;
+            m_isEdges = false;
             std::cout<<"USING BILATERAL"<<std::endl;
             paintGL();
         }
@@ -964,6 +865,7 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         {
             m_isHDR = true;
             m_isBilat = false;
+            m_isEdges = false;
             std::cout<<"USING GLOBAL"<<std::endl;
             paintGL();
         }
@@ -971,6 +873,16 @@ void GLWidget::keyPressEvent(QKeyEvent *event)
         case Qt::Key_L:
         {
             m_isHDR = false;
+            m_isBilat = false;
+            m_isEdges = false;
+            paintGL();
+        }
+        break;
+        case Qt::Key_W:
+        {
+            m_isHDR = true;
+            m_isBilat = true;
+            m_isEdges = true;
             paintGL();
         }
         break;
@@ -1000,5 +912,6 @@ void GLWidget::paintText()
     renderText(10, 95, "H: HDR scene -bilateral fusion", m_font);
     renderText(10, 110, "G: HDR scene -global tone mapping", m_font);
     renderText(10, 125, "L: LDR scene", m_font);
+    renderText(10, 140, "W: Draw edges", m_font);
 
 }

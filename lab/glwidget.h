@@ -72,6 +72,7 @@ private:
     float m_exp; //image exposure
     bool m_isHDR;
     bool m_isBilat;
+    bool m_isEdges;
     float m_increment;
 
 };
