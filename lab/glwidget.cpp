@@ -134,7 +134,7 @@ void GLWidget::initializeResources()
     // by the video card.  But that's a pain to do so we're not going to.
     cout << "--- Loading Resources ---" << endl;
 
-    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/objAnotexture.obj");
+    m_dragon = ResourceLoader::loadObjModel("/course/cs123/data/mesh/sphere.obj");
     cout << "Loaded dragon..." << endl;
 
     char* cube_map = "../final/textures/stpeters_cross.hdr";
@@ -355,12 +355,6 @@ void GLWidget::paintGL()
         else
         {
 
-
-<<<<<<< HEAD
-            m_framebufferObjects["fbo_3"]->bind();
-            m_shaderPrograms["bilat"]->bind();
-            glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
-=======
         m_framebufferObjects["fbo_3"]->bind();
         m_shaderPrograms["bilat"]->bind();
         glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_1"]->texture());
@@ -397,7 +391,6 @@ void GLWidget::paintGL()
         m_framebufferObjects["fbo_6"]->bind();
 
             glBindTexture(GL_TEXTURE_2D, m_framebufferObjects["fbo_2"]->texture());
->>>>>>> aedbfb955f9f276a408c45da6e516bfbbfe4efd2
             renderTexturedQuad(width, height, false);
             m_shaderPrograms["bilat"]->release();
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -490,13 +483,13 @@ void GLWidget::renderScene() {
 
     // Render the dragon with the refraction shader bound
     glActiveTexture(GL_TEXTURE0);
-    m_shaderPrograms["refractFres"]->bind();
-    m_shaderPrograms["refractFres"]->setUniformValue("CubeMap", GL_TEXTURE0);
+    m_shaderPrograms["refract"]->bind();
+    m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
     glPushMatrix();
     glTranslatef(-1.25f, 0.f, 0.f);
     glCallList(m_dragon.idx);
     glPopMatrix();
-    m_shaderPrograms["refractFres"]->release();
+    m_shaderPrograms["refract"]->release();
 
 
    // Vector3 eta = Vector3(0.75, 0.77, 0.8);
