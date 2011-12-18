@@ -121,13 +121,13 @@ void GLWidget::initializeResources()
     cout << "Loaded sphere..." << endl;
 
     m_elephant = ResourceLoader::loadObjModel("/home/gen/courses/Courses_Fall2011/cs123/final/models/elephal.obj");
-    cout << "Loaded sphere..." << endl;
+    cout << "Loaded elephant..." << endl;
 
     m_model1 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/objAnotexture.obj");
-    cout << "Loaded sphere..." << endl;
+    cout << "Loaded polygon-a-mawhatsit..." << endl;
 
-    m_model2 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/dragon.obj");
-    cout << "Loaded sphere..." << endl;
+    m_model2 = ResourceLoader::loadObjModel("/course/cs123/data/mesh/piano.obj");
+    cout << "Loaded piano..." << endl;
 
 
     char* cube_map = "../final/textures/stpeters_cross.hdr";
@@ -479,7 +479,75 @@ float bernstein(int n, int j, float t){
     float b = fact(n)/((fact(j) * fact(n - j))) * pow(t, j) * pow((1-t), (n-j));
     return b;
 }
+//
+//n = # petal
+//P = [];
+//at = 1/3*pi;
+//a1 = n/3*pi;
+//r1 = 1;
+//r2 = 3;
+//r3 = sqrt(r1*r1+r2*r2);
+//a2 = pi/2 - at/2;
+//a3 = asin((r2*sin(a2))/r3);
+//P = [r1*cos(a1); r1*sin(a1); 0];
+//P = [P [r3*cos(a1+at-a3); r3*sin(a1+at-a3); 0]];
+//P = [P [r3*cos(a1+a3); r3*sin(a1+a3); 0]];
+//P = [P [r1*cos(a1+at); r1*sin(a1+at); 0]];
+//
+//LOOP
+//n = # loop
+//P = [];
+//at = 1/3*pi;
+//a1 = n/3*pi;
+//r1 = 1;
+//r2 = 3;
+//r3 = sqrt(r1*r1+r2*r2);
+//a2 = pi/2 - at/2;
+//a3 = asin((r2*sin(a2))/r3);
+//P = [r1*cos(a1); r1*sin(a1); 0];
+//P = [P [r3*cos(a1+a3); r3*sin(a1+a3); 0]];
+//P = [P [r3*cos(a1+at-a3); r3*sin(a1+at-a3); 0]];
+//P = [P [r1*cos(a1+at); r1*sin(a1+at); 0]];
 
+
+// xs and ys are size 4, petal between 0 and 5
+void makeBezPet(float* xs, float* ys, int petal){
+    float at = M_PI/3.0;
+    float a1 = (petal * M_PI)/3.0;
+    float r1 = 2.0;
+    float r2 = 3.0;
+    float r3 = sqrt((r1 * r1) + (r2 * r2));
+    float a2 = (M_PI/2.0) - (at/2.0);
+    float a3 = asin((r2 * sin(a2))/r3);
+    xs[0] = r1 * cos(a1);
+    xs[1] = r3 * cos(a1+at-a3);
+    xs[2] = r3 * cos(a1+a3);
+    xs[3] = r1 * cos(a1+at);
+
+    ys[0] = r1*sin(a1);
+    ys[1] = r3*sin(a1+at-a3);
+    ys[2] = r3*sin(a1+a3);
+    ys[3] = r1*sin(a1+at);
+}
+
+void makeBezLoop(float* xs, float* ys, int petal){
+    float at = M_PI/3.0;
+    float a1 = (petal * M_PI)/3.0;
+    float r1 = 2.0;
+    float r2 = 3.0;
+    float r3 = sqrt((r1 * r1) + (r2 * r2));
+    float a2 = (M_PI/2.0) - (at/2.0);
+    float a3 = asin((r2 * sin(a2))/r3);
+    xs[1] = r1 * cos(a1);
+    xs[0] = r3*cos(a1+at-a3);
+    xs[3] = r3*cos(a1+a3);
+    xs[2] = r1*cos(a1+at);
+
+    ys[1] = r1*sin(a1);
+    ys[0] = r3*sin(a1+at-a3);
+    ys[3] = r3*sin(a1+a3);
+    ys[2] = r1*sin(a1+at);
+}
 
 /**
   Renders the scene.  May be called multiple times by paintGL() if necessary.
@@ -515,29 +583,200 @@ void GLWidget::renderScene() {
     m_shaderPrograms["refract"]->bind();
     m_shaderPrograms["refract"]->setUniformValue("CubeMap", GL_TEXTURE0);
 
-    float xs[4] = {2, 40, -30, 2};
-    float ys[4] = {2, 40, -20, 2};
+    float pxs[13] = {-10, -5, 0, 5, 10, 7.5, 10, 5, 0, -5, -10, -7.5, -10};
+    float pys[13] = {10, 10, 15, 10, 10, 0, -10, -10, 15, -10, -10, 0, 10};
+
+    for(int i = 0; i < 13; i++){
+        pxs[i] *= 0.8;
+        pys[i] *= 0.8;
+    }
+
+    float pianoxs[8] = {4.7, 7.7, 19.6, 11.9, 13.8, 9.9, 14.1, 4.7};
+    float pianozs[8] = {12.9, 7.1, 10.1, 29.1, 20.6, 19.2, 12.4, 12.9};
+    float pianoys[8] = {0.0, 1.0, -1.0, 0.0, 1.0, -1.0, 5.0, 0.0};
 
     //Make star points...
 
     float t = fmod(time, 1);
+    float tpiano = fmod(time, 6);
     float px = 0;
     float py = 0;
-    int count = 0;
 
-    for(int j = 0; j < 4; j++){
-        std::cout<<"t: "<<t<<std::endl;
-        px += xs[j] * bernstein(3, j, t);
-        py += ys[j] * bernstein(3, j, t);
-        std::cout<<"bern: "<<bernstein(3, j, t)<<std::endl;
+    float pianox = 0;
+    float pianoy = 0;
+    float pianoz = 0;
+
+    for(int j = 0; j < 13; j++){
+        px += pxs[j] * bernstein(12, j, t);
+        py += pys[j] * bernstein(12, j, t);
     }
 
-        glPushMatrix();
-            glTranslatef(px, py, 0);
-            glScalef(0.5f, 0.5f, 0.5f);
-            glCallList(m_model1.idx);
-        glPopMatrix();
-   
+    for(int j = 0; j < 8; j++){
+        pianox += pianoxs[j] * bernstein(7, j, tpiano/2) - 1;
+        pianoy += pianoys[j] * bernstein(7, j, tpiano/2);
+        pianoz += pianozs[j] * bernstein(7, j, tpiano/2) - 2;
+    }
+
+    float arcx = 0;
+    float arcy = 0;
+
+    float* arc0xs = new float[4];
+    float* arc0ys = new float[4];
+    float* arc1xs = new float[4];
+    float* arc1ys = new float[4];
+    float* arc2xs = new float[4];
+    float* arc2ys = new float[4];
+    float* arc3xs = new float[4];
+    float* arc3ys = new float[4];
+    float* arc4xs = new float[4];
+    float* arc4ys = new float[4];
+    float* arc5xs = new float[4];
+    float* arc5ys = new float[4];
+
+    makeBezPet(arc0xs, arc0ys, 0);
+    makeBezPet(arc1xs, arc1ys, 1);
+    makeBezPet(arc2xs, arc2ys, 2);
+    makeBezPet(arc3xs, arc3ys, 3);
+    makeBezPet(arc4xs, arc4ys, 4);
+    makeBezPet(arc5xs, arc5ys, 5);
+
+//    for(int i = 0; i < 4; i++){
+//        std::cout<<"xarc0: "<<arc0xs[i]<<std::endl;
+//        std::cout<<"yarc0: "<<arc0ys[i]<<std::endl;
+//    }
+//    for(int i = 0; i < 4; i++){
+//        std::cout<<"xarc1: "<<arc1xs[i]<<std::endl;
+//        std::cout<<"yarc1: "<<arc1ys[i]<<std::endl;
+//    }
+   // std::cout<<arc1xs[1]<<std::endl;
+
+
+    if((tpiano >= 0.85) && (tpiano < 1.85)){
+        for(int j = 0; j < 4; j++){
+            arcx += arc1xs[j] * bernstein(4, j, (tpiano - 1));
+            arcy += arc1ys[j] * bernstein(4, j, (tpiano - 1));
+        }
+    }
+    else if((tpiano >= 1.85) && (tpiano < 2.85)){
+        for(int j = 0; j < 4; j++){
+            arcx += arc2xs[j] * bernstein(4, j, (tpiano - 2));
+            arcy += arc2ys[j] * bernstein(4, j, (tpiano - 2));
+        }
+    }
+    else if((tpiano >= 2.85) && (tpiano < 3.85)){
+        for(int j = 0; j < 4; j++){
+            arcx += arc3xs[j] * bernstein(4, j, (tpiano - 3));
+            arcy += arc3ys[j] * bernstein(4, j, (tpiano - 3));
+        }
+    }
+    else if((tpiano >=  3.85) && (tpiano < 4.85)){
+        for(int j = 0; j < 4; j++){
+            arcx += arc4xs[j] * bernstein(4, j, (tpiano - 4));
+            arcy += arc4ys[j] * bernstein(4, j, (tpiano - 4));
+        }
+    }
+    else if((tpiano >= 4.85) && (tpiano < 5.85)){
+        for(int j = 0; j < 4; j++){
+            arcx += arc5xs[j] * bernstein(4, j, (tpiano - 5));
+            arcy += arc5ys[j] * bernstein(4, j, (tpiano - 5));
+        }
+    }
+    else{
+        for(int j = 0; j < 4; j++){
+            arcx += arc0xs[j] * bernstein(4, j, tpiano);
+            arcy += arc0ys[j] * bernstein(4, j, tpiano);
+        }
+    }
+
+    glPushMatrix();
+        glTranslatef(arcx, arcy, 0);
+        glScalef(0.3f, 0.3f, 0.3f);
+        glCallList(m_model2.idx);
+    glPopMatrix();
+
+
+    float scoopx = 0;
+    float scoopy = 0;
+
+    float* scoop0xs = new float[4];
+    float* scoop0ys = new float[4];
+    float* scoop1xs = new float[4];
+    float* scoop1ys = new float[4];
+    float* scoop2xs = new float[4];
+    float* scoop2ys = new float[4];
+    float* scoop3xs = new float[4];
+    float* scoop3ys = new float[4];
+    float* scoop4xs = new float[4];
+    float* scoop4ys = new float[4];
+    float* scoop5xs = new float[4];
+    float* scoop5ys = new float[4];
+
+    makeBezLoop(scoop0xs, scoop0ys, 0);
+    makeBezLoop(scoop1xs, scoop1ys, 1);
+    makeBezLoop(scoop2xs, scoop2ys, 2);
+    makeBezLoop(scoop3xs, scoop3ys, 3);
+    makeBezLoop(scoop4xs, scoop4ys, 4);
+    makeBezLoop(scoop5xs, scoop5ys, 5);
+
+//    for(int i = 0; i < 4; i++){
+//        std::cout<<"xscoop0: "<<scoop0xs[i]<<std::endl;
+//        std::cout<<"yscoop0: "<<scoop0ys[i]<<std::endl;
+//    }
+//    for(int i = 0; i < 4; i++){
+//        std::cout<<"xscoop1: "<<scoop1xs[i]<<std::endl;
+//        std::cout<<"yscoop1: "<<scoop1ys[i]<<std::endl;
+//    }
+   // std::cout<<scoop1xs[1]<<std::endl;
+
+
+    if((tpiano >= 0.92) && (tpiano < 1.85)){
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop1xs[j] * bernstein(4, j, (tpiano - 1));
+            scoopy += scoop1ys[j] * bernstein(4, j, (tpiano - 1));
+        }
+    }
+    else if((tpiano >= 1.92) && (tpiano < 2.85)){
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop2xs[j] * bernstein(4, j, (tpiano - 2));
+            scoopy += scoop2ys[j] * bernstein(4, j, (tpiano - 2));
+        }
+    }
+    else if((tpiano >= 2.92) && (tpiano < 3.85)){
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop3xs[j] * bernstein(4, j, (tpiano - 3));
+            scoopy += scoop3ys[j] * bernstein(4, j, (tpiano - 3));
+        }
+    }
+    else if((tpiano >=  3.92) && (tpiano < 4.85)){
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop4xs[j] * bernstein(4, j, (tpiano - 4));
+            scoopy += scoop4ys[j] * bernstein(4, j, (tpiano - 4));
+        }
+    }
+    else if((tpiano >= 4.92) && (tpiano < 5.85)){
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop5xs[j] * bernstein(4, j, (tpiano - 5));
+            scoopy += scoop5ys[j] * bernstein(4, j, (tpiano - 5));
+        }
+    }
+    else{
+        for(int j = 0; j < 4; j++){
+            scoopx += scoop0xs[j] * bernstein(4, j, tpiano);
+            scoopy += scoop0ys[j] * bernstein(4, j, tpiano);
+        }
+    }
+    glPushMatrix();
+        glTranslatef(scoopx, 0, scoopy);
+        glScalef(0.3f, 0.3f, 0.3f);
+        glCallList(m_model1.idx);
+    glPopMatrix();
+
+//    glPushMatrix();
+//    glTranslatef(px, py, 0);
+//    glScalef(0.5f, 0.5f, 0.5f);
+//    glCallList(m_model1.idx);
+//    glPopMatrix();
+//
 
     glPushMatrix();
         float rad =1.5f;
